@@ -1,0 +1,102 @@
+[
+  {
+    "question": "Are employees allowed to engage in short sales or trade equity swaps related to shares of Apple stock?",
+    "ground_truth": "No. Short sales, transactions that hedge or offset the value of Apple securities, and transactions in derivatives of Apple stock (including equity swaps, collars, options, warrants, puts, calls, etc.) are prohibited at all times.",
+    "evidence_pages": [13]
+  },
+  {
+    "question": "Whose approval is required if an employee wants to use Apple funds to make a charitable donation of $150,000?",
+    "ground_truth": "Any charitable donation of $100K USD or more involving Apple assets requires the approval of the Chief Executive Officer (CEO) or Chief Financial Officer (CFO), in addition to the VP of Environment, Policy, & Social Initiatives.",
+    "evidence_pages": [14]
+  },
+  {
+    "question": "Am I allowed to discuss my wages and working conditions with my coworkers?",
+    "ground_truth": "Yes, employees are permitted to freely discuss or disclose wages, hours, employment terms, and working conditions.",
+    "evidence_pages": [5]
+  },
+  {
+    "question": "Under what condition can I share Apple Confidential Information with a third-party vendor?",
+    "ground_truth": "Apple Confidential Information should only be disclosed to vendors or third parties once a Non-Disclosure Agreement (NDA) is in place.",
+    "evidence_pages": [7]
+  },
+  {
+    "question": "A customer asked me to sign a quick informal 'side letter' to modify our agreement. Is this allowed without Legal?",
+    "ground_truth": "No, side deals, side letters, or other informal documentation created without Legal oversight are impermissible.",
+    "evidence_pages": [8]
+  },
+  {
+    "question": "I accidentally received an email containing a competitor's confidential marketing plan. Can I use it?",
+    "ground_truth": "No, if you obtain confidential nonpublic information related to a competitor accidentally, it may be unethical to use it. You must immediately contact your manager, Legal, or Business Conduct.",
+    "evidence_pages": [18]
+  },
+  {
+    "question": "If I use my personal iPhone to check work emails, can Apple monitor my personal iCloud messages?",
+    "ground_truth": "Yes, when you use any device to conduct Apple business, Apple may access, search, monitor, and archive all data and messages, including those from iCloud or personal accounts.",
+    "evidence_pages": [19]
+  },
+  {
+    "question": "Can I share a coworker's disciplinary record with another team member?",
+    "ground_truth": "No, you should never share a coworker's personal identifying information, including disciplinary matters, unless they give permission or share it publicly.",
+    "evidence_pages": [19]
+  },
+  {
+    "question": "Can I use the company photocopier and my work computer to help run my personal side business?",
+    "ground_truth": "No, you must not use any working time or Apple assets, including computers and photocopiers, for any outside activity (other than incidental use).",
+    "evidence_pages": [12]
+  },
+  {
+    "question": "Can I buy stock in an Apple supplier if I know Apple is about to announce a major acquisition of that supplier?",
+    "ground_truth": "No, you must never buy or sell securities if you are aware of material non-public information. This applies to the stock of Apple suppliers and vendors as well.",
+    "evidence_pages": [13]
+  },
+  {
+    "question": "Is it okay to invest in a competitor if I don't use any insider information?",
+    "ground_truth": "You should avoid investing in companies that are Apple competitors or business partners when the investment presents a conflict of interest.",
+    "evidence_pages": [13]
+  },
+  {
+    "question": "Can I keep the rights to an invention I created at home on my own time?",
+    "ground_truth": "You may pursue personal ownership of inventions if they are not developed using Apple equipment or information, did not result from Apple work, and are not related to Apple's current or anticipated business.",
+    "evidence_pages": [9]
+  },
+  {
+    "question": "I am under the $150 gift rule. Can I accept a $50 Amazon gift card from a supplier?",
+    "ground_truth": "No, gifts that are cash or cash equivalents, such as gift cards, are never allowed.",
+    "evidence_pages": [14]
+  },
+  {
+    "question": "I am an Operations employee. A vendor offered me a free ticket to an industry conference. Can I accept it?",
+    "ground_truth": "No, Operations employees are specifically excepted from the rule that allows accepting free conference tickets.",
+    "evidence_pages": [15]
+  },
+  {
+    "question": "Are Operations employees allowed to accept a taxi ride paid for by a vendor to get to a work location?",
+    "ground_truth": "Yes, Operations employees may accept reasonable local ground transportation provided by vendors to and from work locations.",
+    "evidence_pages": [15]
+  },
+  {
+    "question": "How often are Operations managers required to rotate employees who make sourcing decisions with suppliers?",
+    "ground_truth": "Operations managers must ensure these employees change positions every three years to work with different suppliers.",
+    "evidence_pages": [13]
+  },
+  {
+    "question": "What is the value limit for providing refreshments to a U.S. public official without needing pre-approval?",
+    "ground_truth": "For U.S. public officials, anything other than refreshments of nominal value ($10 or less) must be pre-approved by Political Compliance.",
+    "evidence_pages": [16]
+  },
+  {
+    "question": "Can I pay a small 'facilitating payment' to a government clerk to expedite a routine customs clearance?",
+    "ground_truth": "No, facilitating payments are strictly prohibited by Apple. The only exception is in circumstances involving an imminent threat to health or safety.",
+    "evidence_pages": [17]
+  },
+  {
+    "question": "Will Apple reimburse me if I make a personal political contribution to a local candidate?",
+    "ground_truth": "No, it is illegal for Apple to reimburse an employee for a political contribution. Apple also does not make political contributions to individual candidates.",
+    "evidence_pages": [14]
+  },
+  {
+    "question": "Is it permissible to consume alcohol while conducting Apple business if I don't get drunk?",
+    "ground_truth": "You must comply with guidelines regarding alcohol at Apple-sponsored events or while conducting business. You are not permitted to be under the influence of any drug that impairs your ability to perform your job.",
+    "evidence_pages": [6]
+  }
+]

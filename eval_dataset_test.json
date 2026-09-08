@@ -1,0 +1,74 @@
+[
+  {
+    "question": "If I see a possible violation of the Business Conduct Policy, whom must I notify?",
+    "ground_truth": "You must notify your manager, the People Team, Legal, or Business Conduct.",
+    "evidence_pages": [4],
+    "evidence_section": "Your Responsibilities and Obligation to Take Action",
+    "evidence_note": "The Speak up bullet lists the four reporting channels.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "Does Apple's harassment and discrimination policy also cover interactions with suppliers and applicants?",
+    "ground_truth": "Yes. It applies to interactions where an employee represents Apple, including interactions with suppliers and applicants.",
+    "evidence_pages": [6],
+    "evidence_section": "Harassment and Discrimination",
+    "evidence_note": "The section explicitly includes employees, customers, suppliers, and applicants.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "Which policy defines acceptable individual use of AI tools for personal productivity at work?",
+    "ground_truth": "The AI Individual Use Policy specifies the requirements for acceptable individual use of AI tools, platforms, and systems for personal productivity in Apple work.",
+    "evidence_pages": [7],
+    "evidence_section": "Artificial Intelligence (AI)",
+    "evidence_note": "The policy name and its individual-use purpose appear together on the page.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "May I delete duplicate records after Legal tells me they are under a legal hold?",
+    "ground_truth": "No. Records under a legal hold must not be altered, destroyed, or deleted in any way.",
+    "evidence_pages": [8],
+    "evidence_section": "Records Management",
+    "evidence_note": "The legal-hold paragraph expressly prohibits alteration, destruction, and deletion.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "What approvals and compensation rules apply when I speak publicly about an Apple product?",
+    "ground_truth": "The engagement must be pre-approved by the employee's manager and Corporate Communications. If approved, the employee may not accept personal compensation but may accept directly related expenses.",
+    "evidence_pages": [10],
+    "evidence_section": "Public Speaking and Press Inquiries",
+    "evidence_note": "The first paragraph states both the approvals and compensation restriction.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "What should I do if a family relationship may influence my selection of an Apple supplier?",
+    "ground_truth": "Do not conduct Apple business with the family member and disclose the potential conflict to your manager and People Business Partner for review.",
+    "evidence_pages": [11],
+    "evidence_section": "Significant Personal Relationships",
+    "evidence_note": "The section covers supplier selection and identifies the required disclosure recipients.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "What must an employee do before providing anything of value to a healthcare provider?",
+    "ground_truth": "The employee must consult Health & Studies Compliance. Using gifts to influence a healthcare provider to use, purchase, or recommend an Apple product is always prohibited.",
+    "evidence_pages": [16],
+    "evidence_section": "Gifts to Healthcare Providers",
+    "evidence_note": "The section contains both the consultation requirement and the absolute anti-influence rule.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  },
+  {
+    "question": "Can a customer payment made by someone who is not part of the contract be a money-laundering warning sign?",
+    "ground_truth": "Yes. A payment by someone who is not a party to the contract is listed as a signal of potential money laundering.",
+    "evidence_pages": [18],
+    "evidence_section": "Money Laundering",
+    "evidence_note": "The page lists third-party contract payments among suspicious activity examples.",
+    "label_status": "human_verified",
+    "source_document": "company_policy.pdf"
+  }
+]

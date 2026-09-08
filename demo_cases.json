@@ -1,0 +1,23 @@
+[
+  {
+    "id": "normal_answer",
+    "question": "Can an employee accept a $50 gift card from a supplier if the employee is under the $150 gift rule?",
+    "expected_behavior": "Answer no and cite page 14.",
+    "expected_pages": [14],
+    "label_status": "human_verified"
+  },
+  {
+    "id": "unanswerable",
+    "question": "What is the password for the employee cafeteria Wi-Fi?",
+    "expected_behavior": "Abstain because the policy contains no supporting evidence.",
+    "expected_pages": [],
+    "label_status": "human_verified"
+  },
+  {
+    "id": "cross_page",
+    "question": "Compare the rule for accepting a supplier gift card with the rule for providing something of value to a healthcare provider.",
+    "expected_behavior": "Explain both rules and cite pages 14 and 16.",
+    "expected_pages": [14, 16],
+    "label_status": "human_verified"
+  }
+]

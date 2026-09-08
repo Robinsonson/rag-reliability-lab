@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-09-08T06:37:14.298893+00:00",
+  "scope": "Three hand-verified demonstration contracts; not an accuracy metric.",
+  "passed": 3,
+  "total": 3,
+  "results": [
+    {
+      "id": "normal_answer",
+      "question": "Can an employee accept a $50 gift card from a supplier if the employee is under the $150 gift rule?",
+      "expected_pages": [
+        14
+      ],
+      "answerable": true,
+      "answer": "No, an employee cannot accept a $50 gift card from a supplier, even if the employee is under the $150 gift rule. The policy states that gifts that are cash or cash equivalents, such as gift cards, are never allowed, regardless of the gift rule limit. This prohibition is absolute and not subject to the $150 threshold.",
+      "cited_pages": [
+        14
+      ],
+      "validation": "citation_ids_validated",
+      "passed": true
+    },
+    {
+      "id": "unanswerable",
+      "question": "What is the password for the employee cafeteria Wi-Fi?",
+      "expected_pages": [],
+      "answerable": false,
+      "answer": "I cannot answer this from the available policy evidence.",
+      "cited_pages": [],
+      "validation": "model_abstained",
+      "passed": true
+    },
+    {
+      "id": "cross_page",
+      "question": "Compare the rule for accepting a supplier gift card with the rule for providing something of value to a healthcare provider.",
+      "expected_pages": [
+        14,
+        16
+      ],
+      "answerable": true,
+      "answer": "The policy prohibits accepting supplier gift cards because cash equivalents such as gift cards are never allowed (S1). For providing something of value to a healthcare provider (HCP), the policy requires consulting with Health & Studies Compliance before doing so, and prohibits using gifts to influence or encourage HCPs to use, purchase, or recommend Apple products (S4). Thus, supplier gift cards are categorically banned, while HCP gifts are subject to compliance review and anti-influence restrictions.",
+      "cited_pages": [
+        14,
+        16
+      ],
+      "validation": "citation_ids_validated",
+      "passed": true
+    }
+  ]
+}

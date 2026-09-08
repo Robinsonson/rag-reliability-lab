@@ -1,0 +1,1717 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-09-08T06:28:22.191102+00:00",
+  "metric_definition": "A hit occurs when at least one human-labelled evidence page appears in the first 4 retrieved chunks.",
+  "configuration": {
+    "k": 4,
+    "embedding_backend": "hf",
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "reranker_model": "cross-encoder/ms-marco-MiniLM-L6-v2"
+  },
+  "dataset": {
+    "schema_version": 1,
+    "source_document": {
+      "file": "company_policy.pdf",
+      "title": "Business Conduct: The way we do business worldwide",
+      "document_date": "February 2026",
+      "page_count": 20,
+      "sha256": "be481bdf584b463fcb7382629ec6abbf77727cfaa26efeab1950b263c9e6d137"
+    },
+    "datasets": {
+      "development": {
+        "file": "eval_dataset.json",
+        "case_count": 20,
+        "provenance": "Hand-authored policy questions with evidence pages manually checked against the PDF.",
+        "usage_warning": "This set was inspected while developing the retrieval pipeline. Report it as a development benchmark, not a held-out test."
+      },
+      "test": {
+        "file": "eval_dataset_test.json",
+        "case_count": 8,
+        "provenance": "New hand-authored questions with section names and evidence pages manually checked against the PDF after the pipeline configuration was frozen.",
+        "freeze_policy": "Run once for final reporting; do not tune retrieval settings against these results."
+      }
+    },
+    "metric_scope": "Evidence-page retrieval only. Recall@K and MRR@K are not answer accuracy or production quality metrics."
+  },
+  "pipelines": [
+    {
+      "id": "dense",
+      "name": "Dense baseline",
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.9137,
+        "hit_count": 28,
+        "miss_count": 0,
+        "case_count": 28,
+        "median_latency_ms": 23,
+        "mean_latency_ms": 30
+      },
+      "metrics_by_split": {
+        "development": {
+          "recall_at_k": 1.0,
+          "mrr_at_k": 0.9042,
+          "hit_count": 20,
+          "miss_count": 0,
+          "case_count": 20,
+          "median_latency_ms": 23,
+          "mean_latency_ms": 32
+        },
+        "test": {
+          "recall_at_k": 1.0,
+          "mrr_at_k": 0.9375,
+          "hit_count": 8,
+          "miss_count": 0,
+          "case_count": 8,
+          "median_latency_ms": 22,
+          "mean_latency_ms": 24
+        }
+      },
+      "cases": [
+        {
+          "id": 1,
+          "case_id": "development-01",
+          "split": "development",
+          "question": "Are employees allowed to engage in short sales or trade equity swaps related to shares of Apple stock?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            13,
+            13,
+            5,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 183
+        },
+        {
+          "id": 2,
+          "case_id": "development-02",
+          "split": "development",
+          "question": "Whose approval is required if an employee wants to use Apple funds to make a charitable donation of $150,000?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            14,
+            14,
+            10,
+            15
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 23
+        },
+        {
+          "id": 3,
+          "case_id": "development-03",
+          "split": "development",
+          "question": "Am I allowed to discuss my wages and working conditions with my coworkers?",
+          "evidence_pages": [
+            5
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            5,
+            10,
+            6,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 23
+        },
+        {
+          "id": 4,
+          "case_id": "development-04",
+          "split": "development",
+          "question": "Under what condition can I share Apple Confidential Information with a third-party vendor?",
+          "evidence_pages": [
+            7
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            7,
+            7,
+            3,
+            7
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 19
+        },
+        {
+          "id": 5,
+          "case_id": "development-05",
+          "split": "development",
+          "question": "A customer asked me to sign a quick informal 'side letter' to modify our agreement. Is this allowed without Legal?",
+          "evidence_pages": [
+            8
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            8,
+            3,
+            13,
+            8
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 23
+        },
+        {
+          "id": 6,
+          "case_id": "development-06",
+          "split": "development",
+          "question": "I accidentally received an email containing a competitor's confidential marketing plan. Can I use it?",
+          "evidence_pages": [
+            18
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            7,
+            18,
+            18,
+            7
+          ],
+          "first_relevant_rank": 2,
+          "latency_ms": 18
+        },
+        {
+          "id": 7,
+          "case_id": "development-07",
+          "split": "development",
+          "question": "If I use my personal iPhone to check work emails, can Apple monitor my personal iCloud messages?",
+          "evidence_pages": [
+            19
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            19,
+            19,
+            5,
+            19
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 30
+        },
+        {
+          "id": 8,
+          "case_id": "development-08",
+          "split": "development",
+          "question": "Can I share a coworker's disciplinary record with another team member?",
+          "evidence_pages": [
+            19
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            19,
+            4,
+            8,
+            11
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 22
+        },
+        {
+          "id": 9,
+          "case_id": "development-09",
+          "split": "development",
+          "question": "Can I use the company photocopier and my work computer to help run my personal side business?",
+          "evidence_pages": [
+            12
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            19,
+            19,
+            16,
+            12
+          ],
+          "first_relevant_rank": 4,
+          "latency_ms": 23
+        },
+        {
+          "id": 10,
+          "case_id": "development-10",
+          "split": "development",
+          "question": "Can I buy stock in an Apple supplier if I know Apple is about to announce a major acquisition of that supplier?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            13,
+            18,
+            13,
+            13
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 25
+        },
+        {
+          "id": 11,
+          "case_id": "development-11",
+          "split": "development",
+          "question": "Is it okay to invest in a competitor if I don't use any insider information?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            13,
+            13,
+            18,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 22
+        },
+        {
+          "id": 12,
+          "case_id": "development-12",
+          "split": "development",
+          "question": "Can I keep the rights to an invention I created at home on my own time?",
+          "evidence_pages": [
+            9
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            9,
+            9,
+            9,
+            12
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 25
+        },
+        {
+          "id": 13,
+          "case_id": "development-13",
+          "split": "development",
+          "question": "I am under the $150 gift rule. Can I accept a $50 Amazon gift card from a supplier?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            14,
+            15,
+            15,
+            16
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 32
+        },
+        {
+          "id": 14,
+          "case_id": "development-14",
+          "split": "development",
+          "question": "I am an Operations employee. A vendor offered me a free ticket to an industry conference. Can I accept it?",
+          "evidence_pages": [
+            15
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            15,
+            15,
+            15,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 31
+        },
+        {
+          "id": 15,
+          "case_id": "development-15",
+          "split": "development",
+          "question": "Are Operations employees allowed to accept a taxi ride paid for by a vendor to get to a work location?",
+          "evidence_pages": [
+            15
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            15,
+            15,
+            19,
+            17
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 23
+        },
+        {
+          "id": 16,
+          "case_id": "development-16",
+          "split": "development",
+          "question": "How often are Operations managers required to rotate employees who make sourcing decisions with suppliers?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            13,
+            7,
+            3,
+            18
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 26
+        },
+        {
+          "id": 17,
+          "case_id": "development-17",
+          "split": "development",
+          "question": "What is the value limit for providing refreshments to a U.S. public official without needing pre-approval?",
+          "evidence_pages": [
+            16
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            16,
+            16,
+            15,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 21
+        },
+        {
+          "id": 18,
+          "case_id": "development-18",
+          "split": "development",
+          "question": "Can I pay a small 'facilitating payment' to a government clerk to expedite a routine customs clearance?",
+          "evidence_pages": [
+            17
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            16,
+            16,
+            17,
+            15
+          ],
+          "first_relevant_rank": 3,
+          "latency_ms": 17
+        },
+        {
+          "id": 19,
+          "case_id": "development-19",
+          "split": "development",
+          "question": "Will Apple reimburse me if I make a personal political contribution to a local candidate?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            14,
+            14,
+            10,
+            16
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 25
+        },
+        {
+          "id": 20,
+          "case_id": "development-20",
+          "split": "development",
+          "question": "Is it permissible to consume alcohol while conducting Apple business if I don't get drunk?",
+          "evidence_pages": [
+            6
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            6,
+            15,
+            15,
+            4
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 22
+        },
+        {
+          "id": 1,
+          "case_id": "test-01",
+          "split": "test",
+          "question": "If I see a possible violation of the Business Conduct Policy, whom must I notify?",
+          "evidence_pages": [
+            4
+          ],
+          "evidence_section": "Your Responsibilities and Obligation to Take Action",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            4,
+            17,
+            4,
+            4
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 35
+        },
+        {
+          "id": 2,
+          "case_id": "test-02",
+          "split": "test",
+          "question": "Does Apple's harassment and discrimination policy also cover interactions with suppliers and applicants?",
+          "evidence_pages": [
+            6
+          ],
+          "evidence_section": "Harassment and Discrimination",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            5,
+            6,
+            4,
+            4
+          ],
+          "first_relevant_rank": 2,
+          "latency_ms": 24
+        },
+        {
+          "id": 3,
+          "case_id": "test-03",
+          "split": "test",
+          "question": "Which policy defines acceptable individual use of AI tools for personal productivity at work?",
+          "evidence_pages": [
+            7
+          ],
+          "evidence_section": "Artificial Intelligence (AI)",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            7,
+            7,
+            2,
+            19
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 31
+        },
+        {
+          "id": 4,
+          "case_id": "test-04",
+          "split": "test",
+          "question": "May I delete duplicate records after Legal tells me they are under a legal hold?",
+          "evidence_pages": [
+            8
+          ],
+          "evidence_section": "Records Management",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            8,
+            8,
+            8,
+            13
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 19
+        },
+        {
+          "id": 5,
+          "case_id": "test-05",
+          "split": "test",
+          "question": "What approvals and compensation rules apply when I speak publicly about an Apple product?",
+          "evidence_pages": [
+            10
+          ],
+          "evidence_section": "Public Speaking and Press Inquiries",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 22
+        },
+        {
+          "id": 6,
+          "case_id": "test-06",
+          "split": "test",
+          "question": "What should I do if a family relationship may influence my selection of an Apple supplier?",
+          "evidence_pages": [
+            11
+          ],
+          "evidence_section": "Significant Personal Relationships",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            11,
+            13,
+            11,
+            13
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 23
+        },
+        {
+          "id": 7,
+          "case_id": "test-07",
+          "split": "test",
+          "question": "What must an employee do before providing anything of value to a healthcare provider?",
+          "evidence_pages": [
+            16
+          ],
+          "evidence_section": "Gifts to Healthcare Providers",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            16,
+            7,
+            8,
+            2
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 20
+        },
+        {
+          "id": 8,
+          "case_id": "test-08",
+          "split": "test",
+          "question": "Can a customer payment made by someone who is not part of the contract be a money-laundering warning sign?",
+          "evidence_pages": [
+            18
+          ],
+          "evidence_section": "Money Laundering",
+          "label_status": "human_verified",
+          "retrieved_pages": [
+            18,
+            17,
+            3,
+            18
+          ],
+          "first_relevant_rank": 1,
+          "latency_ms": 22
+        }
+      ]
+    },
+    {
+      "id": "hybrid_rerank",
+      "name": "Hybrid + rerank",
+      "metrics": {
+        "recall_at_k": 1.0,
+        "mrr_at_k": 0.9821,
+        "hit_count": 28,
+        "miss_count": 0,
+        "case_count": 28,
+        "median_latency_ms": 470,
+        "mean_latency_ms": 463
+      },
+      "metrics_by_split": {
+        "development": {
+          "recall_at_k": 1.0,
+          "mrr_at_k": 0.975,
+          "hit_count": 20,
+          "miss_count": 0,
+          "case_count": 20,
+          "median_latency_ms": 472,
+          "mean_latency_ms": 466
+        },
+        "test": {
+          "recall_at_k": 1.0,
+          "mrr_at_k": 1.0,
+          "hit_count": 8,
+          "miss_count": 0,
+          "case_count": 8,
+          "median_latency_ms": 450,
+          "mean_latency_ms": 455
+        }
+      },
+      "cases": [
+        {
+          "id": 1,
+          "case_id": "development-01",
+          "split": "development",
+          "question": "Are employees allowed to engage in short sales or trade equity swaps related to shares of Apple stock?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            13,
+            5,
+            12,
+            13,
+            12,
+            10,
+            18,
+            13,
+            19,
+            19,
+            14,
+            9,
+            13,
+            19,
+            12,
+            15,
+            9
+          ],
+          "retrieved_pages": [
+            13,
+            12,
+            13,
+            5
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 490
+        },
+        {
+          "id": 2,
+          "case_id": "development-02",
+          "split": "development",
+          "question": "Whose approval is required if an employee wants to use Apple funds to make a charitable donation of $150,000?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            14,
+            10,
+            14,
+            18,
+            15,
+            15,
+            12,
+            10,
+            15,
+            19,
+            12,
+            16,
+            3,
+            14,
+            13,
+            10,
+            17
+          ],
+          "retrieved_pages": [
+            14,
+            15,
+            10,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 479
+        },
+        {
+          "id": 3,
+          "case_id": "development-03",
+          "split": "development",
+          "question": "Am I allowed to discuss my wages and working conditions with my coworkers?",
+          "evidence_pages": [
+            5
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            5,
+            7,
+            12,
+            12,
+            10,
+            6,
+            4,
+            10,
+            4,
+            8,
+            19,
+            14,
+            4,
+            9,
+            12,
+            3
+          ],
+          "retrieved_pages": [
+            5,
+            10,
+            7,
+            19
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 442
+        },
+        {
+          "id": 4,
+          "case_id": "development-04",
+          "split": "development",
+          "question": "Under what condition can I share Apple Confidential Information with a third-party vendor?",
+          "evidence_pages": [
+            7
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            7,
+            7,
+            7,
+            19,
+            9,
+            9,
+            3,
+            8,
+            13,
+            10,
+            18,
+            12,
+            12,
+            12
+          ],
+          "retrieved_pages": [
+            7,
+            7,
+            3,
+            18
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 416
+        },
+        {
+          "id": 5,
+          "case_id": "development-05",
+          "split": "development",
+          "question": "A customer asked me to sign a quick informal 'side letter' to modify our agreement. Is this allowed without Legal?",
+          "evidence_pages": [
+            8
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            8,
+            14,
+            10,
+            12,
+            3,
+            13,
+            8,
+            18,
+            8,
+            16,
+            11,
+            10,
+            3,
+            16,
+            19,
+            4,
+            18
+          ],
+          "retrieved_pages": [
+            8,
+            8,
+            18,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 471
+        },
+        {
+          "id": 6,
+          "case_id": "development-06",
+          "split": "development",
+          "question": "I accidentally received an email containing a competitor's confidential marketing plan. Can I use it?",
+          "evidence_pages": [
+            18
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            18,
+            7,
+            7,
+            18,
+            14,
+            18,
+            7,
+            8,
+            8,
+            10,
+            4,
+            12,
+            4,
+            15,
+            15,
+            14
+          ],
+          "retrieved_pages": [
+            18,
+            18,
+            7,
+            7
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 405
+        },
+        {
+          "id": 7,
+          "case_id": "development-07",
+          "split": "development",
+          "question": "If I use my personal iPhone to check work emails, can Apple monitor my personal iCloud messages?",
+          "evidence_pages": [
+            19
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            19,
+            19,
+            11,
+            7,
+            19,
+            9,
+            5,
+            12,
+            9,
+            12,
+            19,
+            15,
+            10,
+            18,
+            4
+          ],
+          "retrieved_pages": [
+            19,
+            19,
+            9,
+            7
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 405
+        },
+        {
+          "id": 8,
+          "case_id": "development-08",
+          "split": "development",
+          "question": "Can I share a coworker's disciplinary record with another team member?",
+          "evidence_pages": [
+            19
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            19,
+            4,
+            8,
+            6,
+            11,
+            9,
+            4,
+            7,
+            12,
+            4,
+            8,
+            10,
+            4,
+            11,
+            14,
+            5,
+            12
+          ],
+          "retrieved_pages": [
+            19,
+            4,
+            4,
+            11
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 443
+        },
+        {
+          "id": 9,
+          "case_id": "development-09",
+          "split": "development",
+          "question": "Can I use the company photocopier and my work computer to help run my personal side business?",
+          "evidence_pages": [
+            12
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            19,
+            12,
+            18,
+            19,
+            7,
+            16,
+            9,
+            13,
+            3,
+            13,
+            15,
+            4,
+            11,
+            8,
+            11,
+            12,
+            17
+          ],
+          "retrieved_pages": [
+            12,
+            19,
+            11,
+            9
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 486
+        },
+        {
+          "id": 10,
+          "case_id": "development-10",
+          "split": "development",
+          "question": "Can I buy stock in an Apple supplier if I know Apple is about to announce a major acquisition of that supplier?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            13,
+            13,
+            18,
+            13,
+            13,
+            15,
+            18,
+            12,
+            3,
+            10,
+            7,
+            3,
+            9,
+            4,
+            10,
+            5,
+            14,
+            11
+          ],
+          "retrieved_pages": [
+            13,
+            13,
+            3,
+            18
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 529
+        },
+        {
+          "id": 11,
+          "case_id": "development-11",
+          "split": "development",
+          "question": "Is it okay to invest in a competitor if I don't use any insider information?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            13,
+            18,
+            11,
+            13,
+            13,
+            14,
+            11,
+            7,
+            12,
+            6,
+            18,
+            12,
+            19,
+            15,
+            7,
+            15,
+            16
+          ],
+          "retrieved_pages": [
+            13,
+            18,
+            13,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 485
+        },
+        {
+          "id": 12,
+          "case_id": "development-12",
+          "split": "development",
+          "question": "Can I keep the rights to an invention I created at home on my own time?",
+          "evidence_pages": [
+            9
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            9,
+            12,
+            7,
+            8,
+            9,
+            19,
+            9,
+            6,
+            5,
+            4,
+            7,
+            8,
+            19,
+            18,
+            19,
+            18
+          ],
+          "retrieved_pages": [
+            9,
+            9,
+            12,
+            9
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 477
+        },
+        {
+          "id": 13,
+          "case_id": "development-13",
+          "split": "development",
+          "question": "I am under the $150 gift rule. Can I accept a $50 Amazon gift card from a supplier?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            15,
+            14,
+            15,
+            15,
+            17,
+            16,
+            16,
+            18,
+            14,
+            8,
+            3,
+            4,
+            10,
+            15,
+            4
+          ],
+          "retrieved_pages": [
+            15,
+            14,
+            15,
+            16
+          ],
+          "first_relevant_rank": 2,
+          "failure_stage": null,
+          "latency_ms": 437
+        },
+        {
+          "id": 14,
+          "case_id": "development-14",
+          "split": "development",
+          "question": "I am an Operations employee. A vendor offered me a free ticket to an industry conference. Can I accept it?",
+          "evidence_pages": [
+            15
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            15,
+            15,
+            15,
+            18,
+            14,
+            15,
+            10,
+            17,
+            3,
+            15,
+            14,
+            10,
+            12,
+            8
+          ],
+          "retrieved_pages": [
+            15,
+            15,
+            15,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 401
+        },
+        {
+          "id": 15,
+          "case_id": "development-15",
+          "split": "development",
+          "question": "Are Operations employees allowed to accept a taxi ride paid for by a vendor to get to a work location?",
+          "evidence_pages": [
+            15
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            15,
+            15,
+            15,
+            12,
+            19,
+            17,
+            15,
+            17,
+            13,
+            14,
+            10,
+            16,
+            18,
+            4,
+            12,
+            4
+          ],
+          "retrieved_pages": [
+            15,
+            15,
+            15,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 488
+        },
+        {
+          "id": 16,
+          "case_id": "development-16",
+          "split": "development",
+          "question": "How often are Operations managers required to rotate employees who make sourcing decisions with suppliers?",
+          "evidence_pages": [
+            13
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            13,
+            3,
+            7,
+            17,
+            18,
+            18,
+            15,
+            15,
+            19,
+            3,
+            1,
+            15,
+            11,
+            4,
+            6,
+            13,
+            18,
+            12
+          ],
+          "retrieved_pages": [
+            13,
+            3,
+            15,
+            11
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 472
+        },
+        {
+          "id": 17,
+          "case_id": "development-17",
+          "split": "development",
+          "question": "What is the value limit for providing refreshments to a U.S. public official without needing pre-approval?",
+          "evidence_pages": [
+            16
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            16,
+            15,
+            15,
+            16,
+            14,
+            16,
+            17,
+            17,
+            14,
+            18,
+            15,
+            3,
+            13,
+            14,
+            13
+          ],
+          "retrieved_pages": [
+            16,
+            16,
+            15,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 413
+        },
+        {
+          "id": 18,
+          "case_id": "development-18",
+          "split": "development",
+          "question": "Can I pay a small 'facilitating payment' to a government clerk to expedite a routine customs clearance?",
+          "evidence_pages": [
+            17
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            16,
+            17,
+            17,
+            16,
+            18,
+            15,
+            17,
+            14,
+            15,
+            12,
+            9,
+            15,
+            15,
+            3,
+            13,
+            17,
+            12
+          ],
+          "retrieved_pages": [
+            17,
+            16,
+            16,
+            17
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 456
+        },
+        {
+          "id": 19,
+          "case_id": "development-19",
+          "split": "development",
+          "question": "Will Apple reimburse me if I make a personal political contribution to a local candidate?",
+          "evidence_pages": [
+            14
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            14,
+            14,
+            10,
+            12,
+            16,
+            10,
+            14,
+            15,
+            17,
+            15,
+            17,
+            13,
+            15,
+            13,
+            15,
+            19,
+            10,
+            11
+          ],
+          "retrieved_pages": [
+            14,
+            14,
+            10,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 473
+        },
+        {
+          "id": 20,
+          "case_id": "development-20",
+          "split": "development",
+          "question": "Is it permissible to consume alcohol while conducting Apple business if I don't get drunk?",
+          "evidence_pages": [
+            6
+          ],
+          "evidence_section": "",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            6,
+            15,
+            19,
+            15,
+            11,
+            4,
+            15,
+            12,
+            16,
+            12,
+            10,
+            10,
+            4,
+            3,
+            15,
+            14,
+            11,
+            14,
+            13
+          ],
+          "retrieved_pages": [
+            6,
+            15,
+            4,
+            19
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 662
+        },
+        {
+          "id": 1,
+          "case_id": "test-01",
+          "split": "test",
+          "question": "If I see a possible violation of the Business Conduct Policy, whom must I notify?",
+          "evidence_pages": [
+            4
+          ],
+          "evidence_section": "Your Responsibilities and Obligation to Take Action",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            4,
+            4,
+            4,
+            12,
+            17,
+            9,
+            14,
+            3,
+            14,
+            4,
+            3,
+            4,
+            8,
+            11,
+            3,
+            10
+          ],
+          "retrieved_pages": [
+            4,
+            4,
+            4,
+            17
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 537
+        },
+        {
+          "id": 2,
+          "case_id": "test-02",
+          "split": "test",
+          "question": "Does Apple's harassment and discrimination policy also cover interactions with suppliers and applicants?",
+          "evidence_pages": [
+            6
+          ],
+          "evidence_section": "Harassment and Discrimination",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            5,
+            6,
+            18,
+            3,
+            6,
+            4,
+            16,
+            4,
+            13,
+            10,
+            6,
+            15,
+            10,
+            13,
+            19,
+            3
+          ],
+          "retrieved_pages": [
+            6,
+            6,
+            5,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 430
+        },
+        {
+          "id": 3,
+          "case_id": "test-03",
+          "split": "test",
+          "question": "Which policy defines acceptable individual use of AI tools for personal productivity at work?",
+          "evidence_pages": [
+            7
+          ],
+          "evidence_section": "Artificial Intelligence (AI)",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            7,
+            7,
+            5,
+            2,
+            9,
+            19,
+            4,
+            11,
+            3,
+            15,
+            7,
+            14,
+            9,
+            2,
+            19,
+            19,
+            12
+          ],
+          "retrieved_pages": [
+            7,
+            7,
+            4,
+            5
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 477
+        },
+        {
+          "id": 4,
+          "case_id": "test-04",
+          "split": "test",
+          "question": "May I delete duplicate records after Legal tells me they are under a legal hold?",
+          "evidence_pages": [
+            8
+          ],
+          "evidence_section": "Records Management",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            8,
+            8,
+            8,
+            17,
+            13,
+            15,
+            9,
+            9,
+            15,
+            13,
+            16,
+            19,
+            9,
+            8,
+            15,
+            18,
+            12
+          ],
+          "retrieved_pages": [
+            8,
+            8,
+            9,
+            19
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 430
+        },
+        {
+          "id": 5,
+          "case_id": "test-05",
+          "split": "test",
+          "question": "What approvals and compensation rules apply when I speak publicly about an Apple product?",
+          "evidence_pages": [
+            10
+          ],
+          "evidence_section": "Public Speaking and Press Inquiries",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            10,
+            10,
+            10,
+            7,
+            13,
+            10,
+            19,
+            7,
+            13,
+            18,
+            3,
+            18,
+            9,
+            8,
+            9,
+            11
+          ],
+          "retrieved_pages": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 433
+        },
+        {
+          "id": 6,
+          "case_id": "test-06",
+          "split": "test",
+          "question": "What should I do if a family relationship may influence my selection of an Apple supplier?",
+          "evidence_pages": [
+            11
+          ],
+          "evidence_section": "Significant Personal Relationships",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            11,
+            11,
+            13,
+            13,
+            12,
+            15,
+            18,
+            12,
+            3,
+            11,
+            13,
+            16,
+            3,
+            10,
+            9
+          ],
+          "retrieved_pages": [
+            11,
+            11,
+            13,
+            13
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 382
+        },
+        {
+          "id": 7,
+          "case_id": "test-07",
+          "split": "test",
+          "question": "What must an employee do before providing anything of value to a healthcare provider?",
+          "evidence_pages": [
+            16
+          ],
+          "evidence_section": "Gifts to Healthcare Providers",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            16,
+            16,
+            14,
+            7,
+            8,
+            16,
+            2,
+            17,
+            17,
+            17,
+            15,
+            10,
+            4,
+            9,
+            10,
+            3,
+            12
+          ],
+          "retrieved_pages": [
+            16,
+            14,
+            16,
+            15
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 468
+        },
+        {
+          "id": 8,
+          "case_id": "test-08",
+          "split": "test",
+          "question": "Can a customer payment made by someone who is not part of the contract be a money-laundering warning sign?",
+          "evidence_pages": [
+            18
+          ],
+          "evidence_section": "Money Laundering",
+          "label_status": "human_verified",
+          "candidate_pages": [
+            18,
+            17,
+            15,
+            3,
+            18,
+            10,
+            8,
+            13,
+            14,
+            4,
+            4,
+            15,
+            17,
+            8,
+            7,
+            4,
+            17,
+            14
+          ],
+          "retrieved_pages": [
+            18,
+            17,
+            8,
+            14
+          ],
+          "first_relevant_rank": 1,
+          "failure_stage": null,
+          "latency_ms": 486
+        }
+      ]
+    }
+  ]
+}

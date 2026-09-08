@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source_document": {
+    "file": "company_policy.pdf",
+    "title": "Business Conduct: The way we do business worldwide",
+    "document_date": "February 2026",
+    "official_url": "https://www.apple.com/compliance/pdfs/Business-Conduct-Policy.pdf",
+    "page_count": 20,
+    "sha256": "be481bdf584b463fcb7382629ec6abbf77727cfaa26efeab1950b263c9e6d137"
+  },
+  "datasets": {
+    "development": {
+      "file": "eval_dataset.json",
+      "case_count": 20,
+      "provenance": "Hand-authored policy questions with evidence pages manually checked against the PDF.",
+      "usage_warning": "This set was inspected while developing the retrieval pipeline. Report it as a development benchmark, not a held-out test."
+    },
+    "test": {
+      "file": "eval_dataset_test.json",
+      "case_count": 8,
+      "provenance": "New hand-authored questions with section names and evidence pages manually checked against the PDF after the pipeline configuration was frozen.",
+      "freeze_policy": "Run once for final reporting; do not tune retrieval settings against these results."
+    }
+  },
+  "metric_scope": "Evidence-page retrieval only. Recall@K and MRR@K are not answer accuracy or production quality metrics."
+}

@@ -1,0 +1,15 @@
+.env
+.idea/
+.venv/
+.venv312/
+.model_cache/
+chroma_db/
+company_policy.pdf
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.cache/
+*.log
+docs/demo/frames/
+docs/EVOLUTION.md
