@@ -57,7 +57,8 @@ def validate_answer_payload(
     answerable = raw_answerable is True or (
         isinstance(raw_answerable, str) and raw_answerable.strip().lower() == "true"
     )
-    answer = str(payload.get("answer", "")).strip()
+    raw_answer = payload.get("answer")
+    answer = raw_answer.strip() if isinstance(raw_answer, str) else ""
     raw_ids = payload.get("citation_ids", [])
     citation_ids = raw_ids if isinstance(raw_ids, list) else []
 

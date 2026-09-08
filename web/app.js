@@ -166,7 +166,7 @@ function renderEvaluation(report) {
     const name = document.createElement("span");
     name.textContent = pipeline.name;
     const score = document.createElement("strong");
-    score.textContent = formatPercent(metrics.recall_at_k);
+    score.textContent = formatPercent(metrics.evidence_page_hit_rate_at_k);
     const row = document.createElement("div");
     row.className = "metric-row";
     row.innerHTML = `<span>MRR@4 <b>${metrics.mrr_at_k.toFixed(3)}</b></span><span>Median <b>${metrics.median_latency_ms} ms</b></span>`;

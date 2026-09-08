@@ -62,14 +62,14 @@ class RetrievalMetricTests(unittest.TestCase):
         self.assertEqual(first_relevant_rank([3, 7, 9, 7], [7, 8]), 2)
         self.assertIsNone(first_relevant_rank([1, 2, 3], [7]))
 
-    def test_summary_computes_recall_and_mrr_from_ranked_hits(self) -> None:
+    def test_summary_computes_hit_rate_and_mrr_from_ranked_hits(self) -> None:
         cases = [
             {"first_relevant_rank": 1, "latency_ms": 10},
             {"first_relevant_rank": 2, "latency_ms": 20},
             {"first_relevant_rank": None, "latency_ms": 30},
         ]
         result = summarize_pipeline(cases, k=4)
-        self.assertEqual(result["recall_at_k"], 0.6667)
+        self.assertEqual(result["evidence_page_hit_rate_at_k"], 0.6667)
         self.assertEqual(result["mrr_at_k"], 0.5)
         self.assertEqual(result["median_latency_ms"], 20)
 
@@ -94,6 +94,20 @@ class RetrievalMetricTests(unittest.TestCase):
                 for page in case["evidence_pages"]
             )
         )
+
+    def test_saved_report_uses_evidence_page_hit_rate_name(self) -> None:
+        report = json.loads(
+            (BASE_DIR / "evaluation_runs" / "latest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(report["schema_version"], 3)
+        self.assertEqual(report["metric_name"], "Evidence-page Hit Rate@4")
+        for pipeline in report["pipelines"]:
+            metric_groups = [pipeline["metrics"], *pipeline["metrics_by_split"].values()]
+            for metrics in metric_groups:
+                self.assertIn("evidence_page_hit_rate_at_k", metrics)
+                self.assertNotIn("recall_at_k", metrics)
 
 
 class GroundedAnswerContractTests(unittest.TestCase):
@@ -127,6 +141,18 @@ class GroundedAnswerContractTests(unittest.TestCase):
         )
         self.assertFalse(result["answerable"])
         self.assertEqual(result["validation"], "missing_valid_citation")
+
+    def test_null_or_blank_answer_is_rejected_even_with_valid_citation(self) -> None:
+        for answer in (None, "", "   "):
+            with self.subTest(answer=answer):
+                result = validate_answer_payload(
+                    {"answerable": True, "answer": answer, "citation_ids": ["S1"]},
+                    self.docs,
+                )
+                self.assertFalse(result["answerable"])
+                self.assertEqual(result["answer"], REFUSAL_MESSAGE)
+                self.assertEqual(result["citations"], [])
+                self.assertEqual(result["validation"], "empty_answer")
 
     def test_string_true_from_compatible_api_is_accepted(self) -> None:
         result = validate_answer_payload(

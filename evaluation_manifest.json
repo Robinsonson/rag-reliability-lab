@@ -22,5 +22,5 @@
       "freeze_policy": "Run once for final reporting; do not tune retrieval settings against these results."
     }
   },
-  "metric_scope": "Evidence-page retrieval only. Recall@K and MRR@K are not answer accuracy or production quality metrics."
+  "metric_scope": "Evidence-page retrieval only. Evidence-page Hit Rate@K and MRR@K are not complete-evidence recall, answer accuracy, or production quality metrics."
 }

@@ -1,9 +1,5 @@
 # RAG Reliability Lab
 
-> Repository history notice: this repository was initialized for public
-> presentation on 2026-09-08. Any Git history starts from this cleanup point and
-> does not represent the project's full development timeline.
-
 A local reliability workbench for policy-document RAG. The project focuses on
 a practical failure mode: an answer can sound plausible even when the correct
 policy evidence was never retrieved, was lost during fusion, or was removed by
@@ -23,7 +19,7 @@ Implemented:
 - BM25 + dense weighted fusion followed by a MiniLM cross-encoder reranker;
 - side-by-side dense, hybrid-candidate, and reranked traces;
 - grounded answer JSON contract, validated citations, and explicit abstention;
-- deterministic Recall@4 / MRR@4 retrieval evaluation;
+- deterministic Evidence-page Hit Rate@4 / MRR@4 retrieval evaluation;
 - development and frozen test datasets with evidence-page labels;
 - FastAPI demo UI and API, plus regression and live smoke checks.
 
@@ -79,7 +75,7 @@ Python 3.12 is the maintained local environment.
 
 ```powershell
 python -m venv .venv312
-.\.venv312\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv312\Scripts\python.exe -m pip install -r requirements-lock.txt
 Copy-Item .env.example .env
 .\scripts\download_sample_policy.ps1
 ```
@@ -88,6 +84,11 @@ Edit `.env` and replace `OPENAI_API_KEY` only if generated answers are needed.
 Retrieval evaluation uses the local embedding and reranker models and does not
 call the chat API. Model weights are downloaded on first use and cached under
 `.model_cache/`.
+
+`requirements-lock.txt` is the full dependency snapshot verified on Windows with
+Python 3.12. `requirements.txt` keeps only direct dependencies with compatible
+version ranges and is intended for future dependency upgrades, not exact result
+reproduction.
 
 Important settings:
 
@@ -158,22 +159,26 @@ $env:HF_HUB_OFFLINE="1"  # after the two local models have been cached
 .\.venv312\Scripts\python.exe retrieval_eval.py
 ```
 
-Metric definition: a case is a Recall@4 hit when at least one human-labelled
-evidence page appears among the first four returned chunks. MRR@4 uses the rank
-of the first matching page. It measures retrieval only, not generated-answer
-correctness.
+Metric definition: a case is an Evidence-page Hit Rate@4 hit when at least one
+human-labelled evidence page appears among the first four returned chunks. MRR@4
+uses the rank of the first matching page. These metrics do not measure whether
+all required evidence was retrieved, or whether the generated answer is correct.
 
 Verified local result after rebuilding the fingerprinted index:
 
-- Development (`n=20`): Dense Recall@4 `100.0%`, MRR@4 `0.904`, median
-  `23 ms`; Hybrid + rerank Recall@4 `100.0%`, MRR@4 `0.975`, median `472 ms`.
-- Frozen test (`n=8`): Dense Recall@4 `100.0%`, MRR@4 `0.938`, median
-  `22 ms`; Hybrid + rerank Recall@4 `100.0%`, MRR@4 `1.000`, median `450 ms`.
+- Development (`n=20`): Dense Evidence-page Hit Rate@4 `100.0%`, MRR@4
+  `0.904`, median `32 ms`; Hybrid + rerank Evidence-page Hit Rate@4 `100.0%`,
+  MRR@4 `0.975`, median `508 ms`.
+- Frozen test (`n=8`): Dense Evidence-page Hit Rate@4 `100.0%`, MRR@4 `0.938`,
+  median `44 ms`; Hybrid + rerank Evidence-page Hit Rate@4 `100.0%`, MRR@4
+  `1.000`, median `480 ms`.
 
-The same configuration was run twice without tuning against the frozen test and
-produced identical Recall@4 and MRR@4 values; latency varied slightly. On this
-small corpus the advanced pipeline improved ranking, not recall, and added about
-20x median latency. The old `85% -> 95% Recall@4` result came from an earlier
+The same configuration was run repeatedly without tuning against the frozen test
+and produced identical hit-rate and MRR@4 values; latency varied. On this
+small corpus the combined hybrid-plus-rerank pipeline improved ranking, not the
+hit rate, and added roughly 11-16x median latency in the latest run. Because hybrid retrieval was not
+evaluated as a standalone benchmark, the ranking gain cannot be attributed to
+the cross-encoder alone. The old claimed `85% -> 95%` result came from an earlier
 persisted-index state and must not be used as the current project result.
 
 The full configuration, per-case rankings, candidate pages, and failure stages
@@ -211,3 +216,9 @@ and route availability. Passing tests are regression evidence, not model accurac
 - `web/`: existing workbench interface.
 - `docs/DEMO_SCRIPT.md`: short recording script.
 - `docs/THREE_MINUTE_PITCH.md`: English interview explanation.
+
+## Repository history
+
+This repository was initialized for public presentation on 2026-09-08. Its Git
+history starts from that cleanup point and does not represent the project's full
+development timeline.

@@ -37,12 +37,16 @@ question, an unanswerable Wi-Fi-password question, and a question requiring page
 
 I separated the original 20 development questions from eight new frozen test
 questions. All are hand-authored and manually labelled with evidence pages from
-one 20-page policy. On the frozen test, both dense and hybrid pipelines reached
-100 percent Recall at four. The cross-encoder improved MRR at four from 0.938 to
-1.000, but median latency increased from about 22 to 450 milliseconds.
+one 20-page policy. On the frozen test, both the dense baseline and the complete
+hybrid-plus-rerank pipeline reached a 100 percent evidence-page Hit Rate at four.
+The combined pipeline improved MRR at four from 0.938 to 1.000, but median latency
+increased from about 44 to 480 milliseconds in the latest run. Because I did not benchmark hybrid
+retrieval without reranking as a separate pipeline, I do not attribute that gain
+to the cross-encoder alone.
 
-The important result is therefore better ranking, not better recall. The sample
-is small and is not production traffic, so I keep that limitation explicit.
+The important result is therefore better first-evidence-page ranking, not a
+higher hit rate. The sample is small and is not production traffic, so I keep
+that limitation explicit.
 
 ## 2:40-3:00 - Engineering decisions and next step
 

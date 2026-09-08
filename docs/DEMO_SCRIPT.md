@@ -13,6 +13,6 @@
 3. **Retrieval trace (20 seconds)** - Run comparison with expected page `14`; show Dense, Hybrid candidates, Reranked evidence, and the diagnosis.
 4. **Explicit abstention (15 seconds)** - Ask for the cafeteria Wi-Fi password; show the fixed insufficient-evidence response with no citation.
 5. **Cross-page evidence (15 seconds)** - Ask the gift-card versus healthcare-provider comparison; show pages 14 and 16.
-6. **Evaluation boundary (10 seconds)** - State that the frozen test has 8 hand-labelled questions, measures retrieval rather than answer accuracy, and that reranking improves order while increasing latency.
+6. **Evaluation boundary (10 seconds)** - State that the frozen test has 8 hand-labelled questions, measures evidence-page hits rather than complete evidence recall or answer accuracy, and that the combined hybrid-plus-rerank pipeline improves order while increasing latency.
 
 Do not claim production deployment, real users, answer accuracy, or AWS hosting.

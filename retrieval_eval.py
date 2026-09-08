@@ -102,7 +102,9 @@ def summarize_pipeline(cases: list[dict[str, Any]], *, k: int) -> dict[str, Any]
         1.0 / rank if rank is not None and rank <= k else 0.0 for rank in ranks
     ]
     return {
-        "recall_at_k": round(hit_count / len(cases), 4) if cases else 0.0,
+        "evidence_page_hit_rate_at_k": (
+            round(hit_count / len(cases), 4) if cases else 0.0
+        ),
         "mrr_at_k": round(mean(reciprocal_ranks), 4) if cases else 0.0,
         "hit_count": hit_count,
         "miss_count": len(cases) - hit_count,
@@ -194,7 +196,8 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
         )
 
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "metric_name": f"Evidence-page Hit Rate@{k}",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "metric_definition": (
             "A hit occurs when at least one human-labelled evidence page appears "
@@ -249,13 +252,19 @@ def load_latest_report() -> dict[str, Any] | None:
 
 if __name__ == "__main__":
     result = evaluate_retrieval()
+    k = result["configuration"]["k"]
     for pipeline in result["pipelines"]:
         metrics = pipeline["metrics"]
-        print(f"{pipeline['name']} (all): Recall@4={metrics['recall_at_k']:.1%}, MRR@4={metrics['mrr_at_k']:.3f}")
+        print(
+            f"{pipeline['name']} (all): Evidence-page Hit Rate@{k}="
+            f"{metrics['evidence_page_hit_rate_at_k']:.1%}, "
+            f"MRR@{k}={metrics['mrr_at_k']:.3f}"
+        )
         for split, split_metrics in pipeline["metrics_by_split"].items():
             print(
                 f"  {split}: n={split_metrics['case_count']}, "
-                f"Recall@4={split_metrics['recall_at_k']:.1%}, "
-                f"MRR@4={split_metrics['mrr_at_k']:.3f}, "
+                f"Evidence-page Hit Rate@{k}="
+                f"{split_metrics['evidence_page_hit_rate_at_k']:.1%}, "
+                f"MRR@{k}={split_metrics['mrr_at_k']:.3f}, "
                 f"median={split_metrics['median_latency_ms']} ms"
             )
