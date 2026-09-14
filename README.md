@@ -177,9 +177,7 @@ Then open:
 - interactive API documentation: `http://127.0.0.1:8000/docs`
 - health check: `http://127.0.0.1:8000/api/health`
 
-The maintained demo entry is the FastAPI workbench. `app.py` and `run_app.ps1`
-retain the older Streamlit conversation UI for compatibility, but it is not
-required for the main demo.
+The maintained entry is the FastAPI workbench, started with `run_lab.ps1`.
 
 ## Three representative demonstrations
 
