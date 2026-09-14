@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import json
 import os
-from functools import lru_cache
+from functools import lru_cache, wraps
 from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import Any, Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -35,10 +35,96 @@ app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
 class RetrievalRequest(BaseModel):
     query: str = Field(min_length=3, max_length=1000)
     expected_pages: list[int] = Field(default_factory=list)
+    corpus: Literal["demo", "library"] = "demo"
 
 
 class AnswerRequest(BaseModel):
     question: str = Field(min_length=3, max_length=1000)
+    corpus: Literal["demo", "library"] = "demo"
+
+
+@lru_cache(maxsize=1)
+def _library():
+    from document_library import DocumentLibrary
+    return DocumentLibrary(BASE_DIR / "document_library")
+
+
+def _library_guard(function):
+    @wraps(function)
+    def wrapped(request):
+        if request.corpus == "library":
+            # Serial local snapshot: activation cannot remove evidence mid-answer.
+            with _library().lock:
+                return function(request)
+        return function(request)
+    return wrapped
+
+
+class DocumentUpload(BaseModel):
+    name: str = Field(min_length=1, max_length=160)
+    data: str = Field(min_length=1, max_length=6990512)
+    replaces: str | None = None
+
+
+class DocumentActivation(BaseModel):
+    active: bool = Field(strict=True)
+
+
+@app.get("/api/documents")
+def documents():
+    return _library().catalog()
+
+
+@app.post("/api/documents", status_code=201)
+def upload_document(request: DocumentUpload):
+    try:
+        return _library().upload(request.name, request.data, request.replaces)
+    except KeyError:
+        raise HTTPException(404, "Document not found")
+    except Exception as exc:
+        raise HTTPException(400, f"Document could not be imported: {exc}")
+
+
+@app.post("/api/documents/{identifier}/activation")
+def activate_document(identifier: str, request: DocumentActivation):
+    try:
+        _library().activate(identifier, request.active)
+        return _library().catalog()
+    except KeyError:
+        raise HTTPException(404, "Document not found")
+
+
+@app.get("/api/documents/{identifier}/original")
+def document_original(identifier: str):
+    try:
+        name, content = _library().original(identifier)
+        # No untrusted filename in response headers or filesystem paths.
+        suffix = Path(name).suffix.lower()
+        return Response(content, media_type="application/pdf" if suffix == ".pdf" else "text/plain",
+                        headers={"Content-Disposition": f'attachment; filename="document{suffix}"',
+                                 "X-Content-Type-Options": "nosniff"})
+    except KeyError:
+        raise HTTPException(404, "Document not found")
+
+
+@app.get("/api/documents/{identifier}/pages/{page}")
+def document_page(identifier: str, page: int):
+    with _library().lock:
+        row = _library().db.execute("SELECT name,version,pages FROM documents WHERE id=?", (identifier,)).fetchone()
+        pages = json.loads(row["pages"]) if row else []
+        if not 1 <= page <= len(pages):
+            raise HTTPException(404, "Page not found")
+        return PlainTextResponse(f"{row['name']} — version {row['version']} — page {page}\n\n{pages[page-1]}",
+                                 headers={"X-Content-Type-Options": "nosniff"})
+
+
+@app.post("/api/documents/build-index")
+def build_library_index():
+    try:
+        _runtime("library")
+        return _library().catalog()
+    except Exception as exc:
+        raise HTTPException(503, f"Library index not ready: {exc}")
 
 
 def _policy_path() -> Path:
@@ -66,6 +152,8 @@ def _document_payload(doc: Any, rank: int) -> dict[str, Any]:
         "rank": rank,
         "page": metadata.get("page"),
         "source": metadata.get("source", "unknown"),
+        "document_id": metadata.get("document_id"),
+        "version": metadata.get("version"),
         "content": str(getattr(doc, "page_content", "")).strip(),
     }
 
@@ -97,8 +185,10 @@ def _cached_runtime(index_fingerprint: str) -> tuple[Any, list[Any], Any, Any]:
     return vectorstore, chunks, baseline, advanced
 
 
-def _runtime() -> tuple[Any, list[Any], Any, Any]:
+def _runtime(corpus: str = "demo") -> tuple[Any, list[Any], Any, Any]:
     load_dotenv(BASE_DIR / ".env")
+    if corpus == "library":
+        return _library().runtime()
     from rag_engine import chroma_index_fingerprint
 
     return _cached_runtime(chroma_index_fingerprint())
@@ -212,9 +302,12 @@ def run_retrieval_evaluation() -> dict[str, Any]:
 
 
 @app.post("/api/retrieval/compare")
+@_library_guard
 def compare_retrieval(request: RetrievalRequest) -> dict[str, Any]:
+    if request.corpus == "library" and request.expected_pages:
+        raise HTTPException(400, "Page-only labels belong to the demo corpus; library traces are unlabelled")
     try:
-        _, _, baseline, advanced = _runtime()
+        _, _, baseline, advanced = _runtime(request.corpus)
 
         started = perf_counter()
         baseline_docs = baseline.invoke(request.query)
@@ -242,7 +335,7 @@ def compare_retrieval(request: RetrievalRequest) -> dict[str, Any]:
     return {
         "query": request.query,
         "expected_pages": request.expected_pages,
-        "diagnosis": _diagnose(
+        "diagnosis": {"stage": "unlabelled", "summary": "Library results are not scored against fixed demo labels. Review the source document and version."} if request.corpus == "library" else _diagnose(
             baseline_docs,
             advanced_docs,
             request.expected_pages,
@@ -282,11 +375,12 @@ def compare_retrieval(request: RetrievalRequest) -> dict[str, Any]:
 
 
 @app.post("/api/answer")
+@_library_guard
 def answer_question(request: AnswerRequest) -> dict[str, Any]:
     try:
         from grounded_answer import generate_grounded_answer
 
-        _, _, _, advanced = _runtime()
+        _, _, _, advanced = _runtime(request.corpus)
         started = perf_counter()
         docs = advanced.invoke(request.question)
         retrieval_ms = round((perf_counter() - started) * 1000)

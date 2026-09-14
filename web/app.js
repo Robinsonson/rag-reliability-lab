@@ -1,11 +1,12 @@
 const viewMeta = {
-  overview: ["Workspace / Overview", "Reliability before answers."],
-  inspector: ["Workspace / Query inspector", "See exactly where retrieval changes."],
-  corpus: ["Workspace / Corpus", "Know what entered the index."],
+  inspector: ["Workspace / Documents", "Ask your documents."],
   evaluations: ["Workspace / Evaluations", "No score without reproducible evidence."],
 };
 
 let overviewData = null;
+let libraryBusy = false;
+let libraryReady = false;
+let sourceRevision = 0;
 
 function formatPercent(value) {
   return `${(Number(value) * 100).toFixed(1)}%`;
@@ -31,24 +32,7 @@ function showToast(message) {
 
 function applyOverview(data) {
   overviewData = data;
-  const corpus = data.corpus;
-  const evaluation = data.evaluation;
-  const config = data.configuration;
-  document.getElementById("case-count").textContent = evaluation.case_count;
-  document.getElementById("labelled-count").textContent = `${evaluation.labelled_evidence_count} with evidence labels`;
-  document.getElementById("pipeline-count").textContent = data.pipelines.length;
-  document.getElementById("corpus-status").textContent = corpus.available ? "Ready" : "Missing";
-  document.getElementById("corpus-size").textContent = corpus.available ? `${corpus.name} · ${corpus.size_mb} MB` : corpus.name;
-  document.getElementById("index-status").textContent = corpus.index_present ? "Built" : "Pending";
-  document.getElementById("chunk-size").textContent = config.chunk_size;
-  document.getElementById("chunk-overlap").textContent = config.chunk_overlap;
-  document.getElementById("recall-k").textContent = config.recall_k;
-  document.getElementById("reranker").textContent = config.reranker;
-  document.getElementById("corpus-name").textContent = corpus.name;
-  document.getElementById("corpus-available").textContent = corpus.available ? "Ready" : "Missing";
-  document.getElementById("corpus-index").textContent = corpus.index_present ? "Available" : "Not built";
-  document.getElementById("corpus-detail-size").textContent = corpus.size_mb == null ? "—" : `${corpus.size_mb} MB`;
-  document.getElementById("evaluation-total").textContent = evaluation.case_count;
+  document.getElementById("evaluation-total").textContent = data.evaluation.case_count;
 }
 
 function renderResults(targetId, results) {
@@ -67,6 +51,14 @@ function renderResults(targetId, results) {
     rank.textContent = `Rank ${result.rank}`;
     const page = document.createElement("span");
     page.textContent = result.page ? `Page ${result.page}` : "Page unknown";
+    if (result.document_id) {
+      const source = document.createElement("a");
+      source.href = `/api/documents/${encodeURIComponent(result.document_id)}/pages/${Number(result.page)}`;
+      source.target = "_blank";
+      source.rel = "noopener";
+      source.textContent = `${result.source} · v${result.version}`;
+      article.append(source);
+    }
     const content = document.createElement("p");
     content.textContent = result.content;
     meta.append(rank, page);
@@ -79,6 +71,9 @@ async function runComparison(event) {
   event.preventDefault();
   const button = event.currentTarget.querySelector("button[type='submit']");
   const query = document.getElementById("query").value.trim();
+  const corpus = document.getElementById("query-corpus").value;
+  if (libraryBusy || (corpus === "library" && !libraryReady)) return;
+  const revision = sourceRevision;
   const expectedPages = document.getElementById("expected-pages").value
     .split(",")
     .map((value) => Number.parseInt(value.trim(), 10))
@@ -89,10 +84,12 @@ async function runComparison(event) {
     const response = await fetch("/api/retrieval/compare", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, expected_pages: expectedPages }),
+      body: JSON.stringify({ query, expected_pages: corpus === "library" ? [] : expectedPages, corpus }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || "The experiment failed.");
+    if (sourceRevision !== revision || document.getElementById("query-corpus").value !== corpus) return;
+    document.getElementById("retrieval-details").open = true;
     const dense = data.pipelines.find((pipeline) => pipeline.id === "dense");
     const hybrid = data.pipelines.find((pipeline) => pipeline.id === "hybrid_recall");
     const advanced = data.pipelines.find((pipeline) => pipeline.id === "hybrid_rerank");
@@ -111,12 +108,16 @@ async function runComparison(event) {
   } finally {
     button.disabled = false;
     button.textContent = "Run comparison";
+    syncLibraryControls();
   }
 }
 
 async function generateAnswer() {
   const button = document.getElementById("generate-answer");
   const question = document.getElementById("query").value.trim();
+  const corpus = document.getElementById("query-corpus").value;
+  if (libraryBusy || (corpus === "library" && !libraryReady)) return;
+  const revision = sourceRevision;
   if (question.length < 3) return;
   button.disabled = true;
   button.textContent = "Generating…";
@@ -124,13 +125,14 @@ async function generateAnswer() {
     const response = await fetch("/api/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, corpus }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || "The answer pipeline failed.");
+    if (sourceRevision !== revision || document.getElementById("query-corpus").value !== corpus) return;
     const panel = document.getElementById("grounded-answer");
     panel.hidden = false;
-    document.getElementById("answer-state").textContent = data.answerable ? "Evidence validated" : "Insufficient evidence";
+    document.getElementById("answer-state").textContent = data.answerable ? "Citation IDs validated" : "Insufficient evidence";
     document.getElementById("answer-latency").textContent = `${data.retrieval_ms + data.generation_ms} ms total`;
     document.getElementById("answer-text").textContent = data.answer;
     const citations = document.getElementById("answer-citations");
@@ -143,20 +145,29 @@ async function generateAnswer() {
       const evidence = document.createElement("p");
       evidence.textContent = citation.evidence;
       item.append(label, evidence);
+      if (citation.document_id) {
+        const link = document.createElement("a");
+        link.href = `/api/documents/${encodeURIComponent(citation.document_id)}/pages/${Number(citation.page)}`;
+        link.textContent = `Read source · version ${citation.version}`;
+        link.target = "_blank";
+        link.rel = "noopener";
+        item.append(link);
+      }
       citations.append(item);
     });
   } catch (error) {
     showToast(error.message);
   } finally {
     button.disabled = false;
-    button.textContent = "Generate cited answer";
+    button.textContent = "Ask question";
+    syncLibraryControls();
   }
 }
 
 function renderEvaluation(report) {
   const generated = new Date(report.generated_at);
   document.getElementById("evaluation-status").textContent =
-    `Saved ${generated.toLocaleString()} · K=${report.configuration.k} · ${report.configuration.embedding_model}`;
+    `Saved ${generated.toLocaleString()} · K=${report.configuration.k} · ${report.configuration.embedding_model} · ${report.configuration.warmup === true ? 'Warm-up excluded' : 'Legacy or un-warmed run'}`;
   const grid = document.getElementById("evaluation-grid");
   grid.replaceChildren();
   report.pipelines.forEach((pipeline) => {
@@ -169,10 +180,15 @@ function renderEvaluation(report) {
     score.textContent = formatPercent(metrics.evidence_page_hit_rate_at_k);
     const row = document.createElement("div");
     row.className = "metric-row";
-    row.innerHTML = `<span>MRR@4 <b>${metrics.mrr_at_k.toFixed(3)}</b></span><span>Median <b>${metrics.median_latency_ms} ms</b></span>`;
+    row.innerHTML = `<span>MRR@${Number(report.configuration.k)} <b>${metrics.mrr_at_k.toFixed(3)}</b></span><span>Median <b>${metrics.median_latency_ms} ms</b></span>`;
     const detail = document.createElement("small");
     detail.textContent = `${metrics.hit_count}/${metrics.case_count} evidence-page hits`;
     card.append(name, score, row, detail);
+    Object.entries(pipeline.metrics_by_split || {}).forEach(([split, values]) => {
+      const line = document.createElement("small");
+      line.textContent = `${split}: ${values.hit_count}/${values.case_count} hits · MRR ${values.mrr_at_k.toFixed(3)}`;
+      card.append(line);
+    });
     grid.append(card);
   });
 
@@ -212,8 +228,8 @@ async function loadLatestEvaluation() {
 async function runEvaluation() {
   const button = document.getElementById("run-evaluation");
   button.disabled = true;
-  button.textContent = "Running 40 retrievals…";
-  document.getElementById("evaluation-status").textContent = "Evaluating two pipelines across 20 labelled questions…";
+  button.textContent = "Running benchmark…";
+  document.getElementById("evaluation-status").textContent = "Comparing dense, BM25, hybrid and hybrid + rerank on development and frozen test cases…";
   try {
     const response = await fetch("/api/evaluations/run-retrieval", { method: "POST" });
     const data = await response.json();
@@ -243,4 +259,123 @@ fetch("/api/overview")
 loadLatestEvaluation().catch((error) => showToast(error.message));
 
 const initialView = window.location.hash.slice(1);
-if (viewMeta[initialView]) showView(initialView);
+showView(viewMeta[initialView] ? initialView : "inspector");
+window.addEventListener("hashchange", () => {
+  const name = window.location.hash.slice(1);
+  if (viewMeta[name]) showView(name);
+  else showView("inspector");
+});
+
+// Managed library: original benchmark assets are never changed by uploads.
+async function libraryRequest(url, body) {
+  const response = await fetch(url, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await response.json();
+  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Library request failed');
+  return data;
+}
+async function loadLibrary() {
+  const data = await libraryRequest('/api/documents');
+  libraryReady = data.index_status === 'ready';
+  document.getElementById('library-status').textContent = libraryReady ? 'Documents ready. You can ask a question below.' : data.index_status === 'empty' ? 'Upload a document to begin.' : 'Documents need preparation before you can ask questions.';
+  document.getElementById('library-retry').hidden = libraryReady || data.index_status === 'empty';
+  const list = document.getElementById('library-documents'); list.replaceChildren();
+  const select = document.getElementById('library-replaces'); select.replaceChildren(new Option('Add a new document',''));
+  const newest = new Set();
+  data.documents.forEach(doc => {
+    if (!newest.has(doc.logical_id)) { select.add(new Option(`${doc.name} · v${doc.version}`,doc.id)); newest.add(doc.logical_id); }
+    const row = document.createElement('article'); row.className='library-row';
+    const label=document.createElement('p'); label.textContent=`${doc.name} · v${doc.version} · ${doc.page_count} pages · ${doc.active?'Active':'Inactive'}`;
+    const original=document.createElement('a'); original.href=`/api/documents/${doc.id}/original`; original.textContent='Download original';
+    const toggle=document.createElement('button'); toggle.type='button'; toggle.className='secondary-action'; toggle.textContent=doc.active?'Deactivate':'Activate this version';
+    toggle.onclick=async()=>{
+      if(libraryBusy) return;
+      setLibraryBusy(true);
+      try {
+        await libraryRequest(`/api/documents/${doc.id}/activation`,{active:!doc.active});
+        await prepareLibrary();
+      } catch(e) { libraryFailure(e); }
+      finally { setLibraryBusy(false); }
+    };
+    row.append(label,original,toggle); list.append(row);
+  });
+  if(!data.documents.length) list.textContent='No documents yet. Upload a text PDF or TXT file to begin.';
+  syncLibraryControls();
+  return data;
+}
+function syncLibraryControls() {
+  document.querySelectorAll('#library-upload input, #library-upload select, #library-upload button, #library-documents button, #library-refresh, #library-retry, #query-corpus').forEach(el=>el.disabled=libraryBusy);
+  const blocked=libraryBusy || (document.getElementById('query-corpus').value==='library' && !libraryReady);
+  document.querySelectorAll('#query-form button').forEach(el=>{
+    const running=el.textContent==='Generating…' || el.textContent==='Running pipelines…';
+    el.disabled=blocked || running;
+  });
+}
+function setLibraryBusy(value) {
+  libraryBusy=value;
+  if(value) {
+    sourceRevision++;
+    libraryReady=false;
+    document.getElementById('grounded-answer').hidden=true;
+    ['dense-results','hybrid-results','advanced-results'].forEach(id=>document.getElementById(id).replaceChildren());
+    document.getElementById('diagnosis-stage').textContent='Waiting for a trace';
+    document.getElementById('diagnosis-summary').textContent='Documents are changing. Run a new query when they are ready.';
+    document.getElementById('library-status').textContent='Preparing documents… This may take a moment on the first upload.';
+  }
+  syncLibraryControls();
+}
+function libraryFailure(error) {
+  document.getElementById('library-status').textContent=`Could not finish preparing documents: ${error.message}. Saved documents are retained. Retry preparation to continue.`;
+  document.getElementById('library-retry').hidden=false;
+  showToast(error.message);
+}
+async function prepareLibrary() {
+  const data=await libraryRequest('/api/documents');
+  if(data.documents.some(doc=>doc.active)) await libraryRequest('/api/documents/build-index',{});
+  await loadLibrary();
+}
+document.getElementById('library-upload').onsubmit=async event=>{
+  event.preventDefault();
+  if(libraryBusy) return;
+  const file=document.getElementById('library-file').files[0];
+  const replaces=document.getElementById('library-replaces').value||null;
+  if(!file || file.size>5*1024*1024) return showToast('Choose a file up to 5 MB');
+  setLibraryBusy(true);
+  try {
+    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error('Could not read file'));reader.onload=()=>resolve(reader.result.split(',')[1]);reader.readAsDataURL(file);});
+    await libraryRequest('/api/documents',{name:file.name,data,replaces});
+    document.getElementById('library-file').value='';
+    document.getElementById('query-corpus').value='library';
+    document.getElementById('query-corpus').dispatchEvent(new Event('change'));
+    await prepareLibrary();
+    showToast('Documents ready. Ask your question below.');
+    document.getElementById('query').focus();
+  } catch(e){libraryFailure(e);} finally{setLibraryBusy(false);}
+};
+document.getElementById('library-retry').onclick=async()=>{
+  if(libraryBusy) return;
+  setLibraryBusy(true);
+  try{await prepareLibrary();}catch(e){libraryFailure(e);}finally{setLibraryBusy(false);}
+};
+
+
+document.getElementById('query-corpus').onchange=event=>{
+  sourceRevision++;
+  const library=event.target.value==='library'; document.getElementById('expected-pages').disabled=library;
+  document.getElementById('grounded-answer').hidden=true;
+  ['dense-results','hybrid-results','advanced-results'].forEach(id=>document.getElementById(id).replaceChildren());
+  document.getElementById('diagnosis-summary').textContent=library?'Library traces are unlabelled. Page-only benchmark labels apply to the fixed demo corpus.':'Run a query to inspect evidence.';
+  syncLibraryControls();
+};
+(async()=>{
+  setLibraryBusy(true);
+  try {
+    const data=await loadLibrary();
+    if(data.documents.some(doc=>doc.active)) {
+      document.getElementById('query-corpus').value='library';
+      document.getElementById('query-corpus').dispatchEvent(new Event('change'));
+      document.getElementById('library-status').textContent='Preparing your saved documents…';
+      if(!libraryReady) await prepareLibrary();
+      else document.getElementById('library-status').textContent='Documents ready. You can ask a question below.';
+    }
+  } catch(e){libraryFailure(e);} finally{setLibraryBusy(false);}
+})();

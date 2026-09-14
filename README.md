@@ -11,6 +11,65 @@ a valid evidence citation.
 
 ## Scope
 
+### Managed document library
+
+Open **Document Q&A → Upload your documents** to upload a text PDF or UTF-8 TXT (up to 5 MB,
+100 PDF pages and 500,000 extracted characters). Scanned PDFs with no text are
+rejected; OCR is not provided. Original bytes and extracted pages persist in
+ignored `document_library/library.db`. Filename labels are never filesystem paths.
+The local cap is 100 retained revisions and 5,000 active chunks.
+
+Choose **Add a new document** or explicitly replace a listed document. A
+replacement becomes the active revision, while the original old revision remains
+readable. Activating an older revision deactivates the other versions of that
+logical document; deactivation is reversible and does not delete originals.
+The user chooses which policies are current; the app does not infer effective
+dates or resolve conflicts between unrelated documents.
+
+Uploading or changing an active version automatically prepares the documents.
+The page selects **My active documents** after upload; wait for the ready message
+and ask a question on the same page. Preparation failures retain saved files and
+show **Retry preparation**. Existing active documents are also prepared when the page opens. The library has its own in-memory Chroma collection
+and BM25 index; originals persist, while the index is rebuilt after restart or
+an active-set/configuration change. File/version/page IDs accompany retrieval
+results and answer citations. Source links open the stored text for that exact
+page and revision; original files can be downloaded beside the upload form.
+
+Library mutations and queries serialize within this local process. Index
+construction publishes a complete private generation; failure returns an error,
+never the stale demo or previous library index. Empty libraries cannot answer.
+This is a local single-user workbench, without authentication, multi-tenant
+isolation or a sandboxed PDF parser. Do not expose it as a public upload service.
+
+The fixed demo policy and its labelled benchmark are separate. Page-only labels
+are disabled for library queries because different documents share page numbers.
+Uploading documents does not change benchmark scores or their corpus.
+
+API: `GET/POST /api/documents`, `POST /api/documents/{id}/activation`,
+`POST /api/documents/build-index`, `GET /api/documents/{id}/original`,
+`GET /api/documents/{id}/pages/{page}`. Upload JSON contains `name`, base64 `data`
+and optional `replaces` ID. Query/answer requests accept `corpus: "library"`;
+the default is the fixed `"demo"` corpus.
+
+### Retrieval ablation (September 2026)
+
+The Evaluations page now runs **dense, BM25, hybrid without reranking, and
+hybrid + rerank** on the same development/test questions. Results include both
+splits, candidate/rerank timings, dataset hashes, and the index fingerprint.
+Each saved run has its own `evaluation_runs/run-<id>.json`; `latest.json` is
+atomically replaced only after a completed run. Older two-pipeline reports still
+render; press **Run full benchmark** to create the four-pipeline report.
+
+The benchmark warms all methods once before timing. Model loading and index
+construction are excluded. Hybrid + rerank reuses the measured hybrid candidate
+pass and adds rerank time. This is one sequential pass, not a concurrency or
+production latency benchmark. Comparing warm and older cold timings is invalid.
+The existing frozen test set is unchanged; these results must not be used to
+repeatedly tune configurations while still claiming independent validation.
+
+Answer UI wording is **Citation IDs validated**: this checks source identifiers,
+not semantic correctness. Answer-quality evaluation remains separate work.
+
 Implemented:
 
 - text-based PDF ingestion with 1-based source-page metadata;
@@ -222,3 +281,7 @@ and route availability. Passing tests are regression evidence, not model accurac
 This repository was initialized for public presentation on 2026-09-08. Its Git
 history starts from that cleanup point and does not represent the project's full
 development timeline.
+
+The UI opens directly in Document Q&A. Document versions and retrieval diagnostics
+are expandable sections; Evaluations remains a separate developer view. Legacy
+`#corpus` and `#overview` links fall back to the question page.

@@ -13,22 +13,16 @@
   <body>
     <div class="app-shell">
       <aside class="rail">
-        <a class="brand" href="#overview" aria-label="RAG Reliability Lab home">
+        <a class="brand" href="#inspector" aria-label="RAG Reliability Lab home">
           <span class="brand-mark">RL</span>
           <span>RAG Lab</span>
         </a>
         <nav aria-label="Primary navigation">
-          <button class="nav-item active" data-view="overview">
-            <span class="nav-index">01</span><span>Overview</span>
-          </button>
-          <button class="nav-item" data-view="inspector">
-            <span class="nav-index">02</span><span>Query inspector</span>
-          </button>
-          <button class="nav-item" data-view="corpus">
-            <span class="nav-index">03</span><span>Corpus</span>
+          <button class="nav-item active" data-view="inspector">
+            <span class="nav-index">01</span><span>Document Q&amp;A</span>
           </button>
           <button class="nav-item" data-view="evaluations">
-            <span class="nav-index">04</span><span>Evaluations</span>
+            <span class="nav-index">02</span><span>Evaluations</span>
           </button>
         </nav>
         <div class="rail-foot">
@@ -40,102 +34,46 @@
       <main>
         <header class="topbar">
           <div>
-            <p class="eyebrow" id="view-kicker">Workspace / Overview</p>
-            <h1 id="view-title">Reliability before answers.</h1>
+            <p class="eyebrow" id="view-kicker">Workspace / Documents</p>
+            <h1 id="view-title">Ask your documents.</h1>
           </div>
-          <button class="primary-action" id="open-inspector">Inspect a query</button>
+          <button class="primary-action" id="open-inspector">Document Q&amp;A</button>
         </header>
 
-        <section class="view active" id="overview-view">
-          <div class="metric-grid" aria-label="Workspace summary">
-            <article class="metric metric-primary">
-              <span>Evaluation cases</span>
-              <strong id="case-count">—</strong>
-              <small id="labelled-count">Loading evidence labels</small>
-            </article>
-            <article class="metric">
-              <span>Pipeline variants</span>
-              <strong id="pipeline-count">—</strong>
-              <small>Runnable side by side</small>
-            </article>
-            <article class="metric">
-              <span>Corpus status</span>
-              <strong id="corpus-status">—</strong>
-              <small id="corpus-size">Reading local corpus</small>
-            </article>
-            <article class="metric">
-              <span>Index</span>
-              <strong id="index-status">—</strong>
-              <small>Fingerprint-aware persistence</small>
-            </article>
-          </div>
-
-          <div class="overview-grid">
-            <article class="panel experiment-map">
-              <div class="panel-heading">
-                <div><p class="eyebrow">Active design</p><h2>Retrieval pipeline</h2></div>
-                <span class="tag">2 variants</span>
-              </div>
-              <div class="pipeline-visual" aria-label="Retrieval pipeline topology">
-                <div class="node source-node"><span>01</span><strong>Policy PDF</strong><small>structured extraction</small></div>
-                <div class="connector"></div>
-                <div class="branch-row">
-                  <div class="node"><span>A</span><strong>Dense</strong><small>semantic recall</small></div>
-                  <div class="node"><span>B</span><strong>BM25</strong><small>lexical recall</small></div>
-                </div>
-                <div class="connector split"></div>
-                <div class="node accent-node"><span>03</span><strong>Cross-encoder</strong><small>top 4 evidence passages</small></div>
-              </div>
-            </article>
-
-            <article class="panel configuration-panel">
-              <div class="panel-heading">
-                <div><p class="eyebrow">Current run profile</p><h2>Configuration</h2></div>
-              </div>
-              <dl class="config-list">
-                <div><dt>Chunk size</dt><dd id="chunk-size">—</dd></div>
-                <div><dt>Overlap</dt><dd id="chunk-overlap">—</dd></div>
-                <div><dt>Recall K</dt><dd id="recall-k">—</dd></div>
-                <div class="wide"><dt>Reranker</dt><dd id="reranker">—</dd></div>
-              </dl>
-              <button class="text-action" data-go="inspector">Run a labelled trace →</button>
-            </article>
-          </div>
-
-          <article class="panel readiness-panel">
-            <div class="readiness-copy">
-              <p class="eyebrow">Evidence readiness</p>
-              <h2>Human-labelled retrieval ground truth is ready.</h2>
-              <p>
-                Every evaluation question now points to a verified source page, so retrieval
-                failures can be separated from answer-generation failures.
-              </p>
-            </div>
-            <div class="readiness-rule"><span>Current gate</span><strong>Evidence-page Hit Rate@4 + MRR@4</strong><small>Deterministic · no judge model</small></div>
+        <section class="view active" id="inspector-view">
+          <article class="panel library-panel">
+            <div class="panel-heading"><div><p class="eyebrow">My documents</p><h2>Upload your documents</h2></div></div>
+            <p>Text PDF or TXT, up to 5 MB. Files are prepared automatically.</p>
+            <form id="library-upload">
+              <label for="library-file">Document</label><input id="library-file" type="file" accept=".pdf,.txt" required />
+              <label for="library-replaces">Add or replace</label><select id="library-replaces"><option value="">Add a new document</option></select>
+              <button class="primary-action" type="submit">Upload document</button>
+            </form>
+            <div class="button-row"><button type="button" class="secondary-action" id="library-retry" hidden>Retry preparation</button></div>
+            <p id="library-status" role="status" aria-live="polite">Loading document library…</p>
+            <details class="compact-details"><summary>Manage documents and versions</summary><div id="library-documents"></div></details>
           </article>
-        </section>
 
-        <section class="view" id="inspector-view">
           <div class="inspector-layout">
             <form class="query-console" id="query-form">
-              <p class="eyebrow">Live experiment</p>
-              <h2>Compare retrieval traces</h2>
+
+              <h2>Ask about your documents</h2>
+              <label for="query-corpus">Search in</label>
+              <select id="query-corpus"><option value="demo">Fixed demo policy (benchmark corpus)</option><option value="library">My active documents</option></select>
               <label for="query">Question</label>
-              <textarea id="query" rows="5" required>Can an employee accept a gift card from a supplier if it is worth less than $150?</textarea>
-              <label for="expected-pages">Expected evidence pages <span>optional, comma separated</span></label>
-              <input id="expected-pages" inputmode="numeric" placeholder="e.g. 18, 19" />
+              <textarea id="query" rows="3" required placeholder="Ask a question about your documents…"></textarea>
               <div class="button-row">
-                <button class="primary-action run-button" type="submit">Run comparison</button>
-                <button class="secondary-action run-button" id="generate-answer" type="button">Generate cited answer</button>
+                <button class="primary-action run-button" id="generate-answer" type="button">Ask question</button>
               </div>
-              <p class="form-note">The first run may load local embedding and reranker models.</p>
+              <details class="compact-details">
+                <summary>Compare retrieval methods</summary>
+                <label for="expected-pages">Expected evidence pages <span>optional; demo only</span></label>
+                <input id="expected-pages" inputmode="numeric" placeholder="e.g. 18, 19" />
+                <button class="secondary-action run-button" type="submit">Run comparison</button>
+              </details>
             </form>
 
-            <aside class="diagnosis-card" id="diagnosis-card">
-              <span class="diagnosis-label">Diagnosis</span>
-              <strong id="diagnosis-stage">Waiting for a trace</strong>
-              <p id="diagnosis-summary">Run both pipelines against the same question to expose ranking differences.</p>
-            </aside>
+
           </div>
 
           <article class="panel grounded-answer" id="grounded-answer" hidden>
@@ -144,11 +82,18 @@
               <span class="tag" id="answer-latency">—</span>
             </div>
             <div class="answer-body">
-              <p id="answer-text"></p>
+                <p id="answer-text"></p>
+                <p class="muted">Citation checks confirm source IDs, not whether every answer claim is correct. Review the cited text.</p>
               <div id="answer-citations" class="citation-list"></div>
             </div>
           </article>
 
+          <details class="compact-details" id="retrieval-details"><summary>Retrieval results and diagnosis</summary>
+            <aside class="diagnosis-card" id="diagnosis-card">
+              <span class="diagnosis-label">Diagnosis</span>
+              <strong id="diagnosis-stage">Waiting for a trace</strong>
+              <p id="diagnosis-summary">Run both pipelines against the same question to expose ranking differences.</p>
+            </aside>
           <div class="trace-grid" id="trace-grid">
             <article class="trace-column">
               <div class="trace-head"><div><span>Pipeline A</span><h3>Dense baseline</h3></div><strong id="dense-latency">—</strong></div>
@@ -163,16 +108,7 @@
               <div class="trace-results" id="advanced-results"><p class="empty-copy">No trace yet.</p></div>
             </article>
           </div>
-        </section>
-
-        <section class="view" id="corpus-view">
-          <article class="panel corpus-detail">
-            <p class="eyebrow">Corpus registry</p>
-            <h2 id="corpus-name">Policy document</h2>
-            <div class="corpus-line"><span>Availability</span><strong id="corpus-available">—</strong></div>
-            <div class="corpus-line"><span>Persisted index</span><strong id="corpus-index">—</strong></div>
-            <div class="corpus-line"><span>Source size</span><strong id="corpus-detail-size">—</strong></div>
-          </article>
+          </details>
         </section>
 
         <section class="view" id="evaluations-view">

@@ -683,18 +683,22 @@ def build_compression_retriever(
     """
     Hybrid recall (dense + BM25, k each) then cross-encoder rerank to top_n=4.
 
-    Dense leg: Chroma vector search. Sparse leg: BM25 over policy chunks (cached).
+    Dense leg: Chroma vector search. Sparse leg: BM25 over supplied chunks, or
+    the cached demo policy when chunks are omitted. Managed library chunk IDs
+    keep equal text from different documents distinct during fusion.
     Both feed an EnsembleRetriever (0.5 / 0.5), then ContextualCompressionRetriever
     applies the configured reranker (default: ms-marco-MiniLM for speed).
     """
-    del chunks  # BM25 uses cached index from policy file; kept for API compatibility
     recall_k = hybrid_recall_k()
     dense_retriever = vectorstore.as_retriever(search_kwargs={"k": recall_k})
-    bm25_retriever = _get_cached_bm25_retriever(policy_bm25_cache_key())
+    bm25_retriever = (BM25Retriever.from_documents(chunks) if chunks
+                      else _get_cached_bm25_retriever(policy_bm25_cache_key()))
+    bm25_retriever.k = recall_k
 
     hybrid_retriever = EnsembleRetriever(
         retrievers=[dense_retriever, bm25_retriever],
         weights=[0.5, 0.5],
+        id_key="chunk_id" if chunks and all("chunk_id" in d.metadata for d in chunks) else None,
     )
 
     cross_encoder = _get_cached_cross_encoder(reranker_model_name())

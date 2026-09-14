@@ -96,6 +96,8 @@ def validate_answer_payload(
                 "passage_id": passage_id,
                 "source": str(doc.metadata.get("source", "unknown")),
                 "page": doc.metadata.get("page"),
+                "document_id": doc.metadata.get("document_id"),
+                "version": doc.metadata.get("version"),
                 "evidence": content[:700],
             }
         )

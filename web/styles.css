@@ -193,3 +193,15 @@ textarea:focus, input:focus { border-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+.library-panel{padding:24px;margin-bottom:24px}.library-panel form{display:grid;gap:12px;margin:20px 0}.library-row{padding:16px 0;border-top:1px solid #303640;display:flex;align-items:center;gap:18px;flex-wrap:wrap}.library-row p{flex:1;min-width:200px}select{font:inherit;padding:12px;background:#111820;color:#eee;border:1px solid #424954;max-width:100%}.library-panel a,.trace-item a,.citation-item a{color:#83dec7}
+
+/* Keep the everyday flow compact; diagnostics remain available on demand. */
+.topbar { min-height: 0; margin-bottom: 24px; }
+.topbar h1 { font-size: clamp(28px, 4vw, 44px); max-width: none; }
+.inspector-layout { grid-template-columns: minmax(0, 1fr); }
+.compact-details { margin: 18px 0; border-top: 1px solid var(--line); padding-top: 14px; }
+.compact-details summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
+.compact-details[open] summary { margin-bottom: 14px; }
+#retrieval-details .diagnosis-card { min-height: 0; gap: 12px; padding: 20px; margin-bottom: 16px; }
+#retrieval-details .diagnosis-card strong { margin-top: 0; }

@@ -4,6 +4,7 @@
 .venv312/
 .model_cache/
 chroma_db/
+document_library/
 company_policy.pdf
 __pycache__/
 *.pyc

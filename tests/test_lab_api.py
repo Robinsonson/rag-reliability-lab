@@ -101,7 +101,7 @@ class RetrievalMetricTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(report["schema_version"], 3)
+        self.assertIn(report["schema_version"], (3, 4))
         self.assertEqual(report["metric_name"], "Evidence-page Hit Rate@4")
         for pipeline in report["pipelines"]:
             metric_groups = [pipeline["metrics"], *pipeline["metrics_by_split"].values()]

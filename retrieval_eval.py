@@ -7,7 +7,9 @@ human-labelled evidence page appears in the ranked retrieval results.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean, median
@@ -16,6 +18,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
+from langchain_community.retrievers import BM25Retriever
 
 from rag_engine import (
     build_compression_retriever,
@@ -24,6 +27,7 @@ from rag_engine import (
     get_embeddings,
     load_and_chunk_policy,
     reranker_model_name,
+    chroma_index_fingerprint,
 )
 
 
@@ -124,7 +128,7 @@ def _load_vectorstore(chunks: list[Any]) -> Chroma:
     )
 
 
-def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
+def evaluate_retrieval(*, k: int = 4, save: bool = True, warmup: bool = True) -> dict[str, Any]:
     if k < 1:
         raise ValueError("k must be at least 1.")
 
@@ -138,8 +142,17 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
         chunks,
         top_n=k,
     )
+    # A separate sparse retriever avoids mutating the cached hybrid leg's k.
+    sparse_retriever = BM25Retriever.from_documents(chunks)
+    sparse_retriever.k = k
+    if warmup and cases:
+        dense_retriever.invoke(cases[0]["question"])
+        sparse_retriever.invoke(cases[0]["question"])
+        advanced_retriever.invoke(cases[0]["question"])
     pipeline_cases: dict[str, list[dict[str, Any]]] = {
         "dense": [],
+        "bm25": [],
+        "hybrid": [],
         "hybrid_rerank": [],
     }
     for case in cases:
@@ -160,16 +173,35 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
         )
 
         started = perf_counter()
+        sparse_docs = sparse_retriever.invoke(case["question"])[:k]
+        sparse_ms = round((perf_counter() - started) * 1000, 2)
+        sparse_pages = page_ranking(sparse_docs)
+        pipeline_cases["bm25"].append({
+            **case, "retrieved_pages": sparse_pages,
+            "first_relevant_rank": first_relevant_rank(sparse_pages, case["evidence_pages"]),
+            "latency_ms": sparse_ms,
+        })
+
+        started = perf_counter()
         candidate_docs = advanced_retriever.base_retriever.invoke(case["question"])
+        hybrid_ms = (perf_counter() - started) * 1000
         candidate_pages = page_ranking(candidate_docs)
+        hybrid_pages = candidate_pages[:k]
+        pipeline_cases["hybrid"].append({
+            **case, "retrieved_pages": hybrid_pages,
+            "first_relevant_rank": first_relevant_rank(hybrid_pages, case["evidence_pages"]),
+            "latency_ms": round(hybrid_ms, 2),
+        })
+        rerank_started = perf_counter()
         reranked_docs = list(
             advanced_retriever.base_compressor.compress_documents(
                 candidate_docs,
                 case["question"],
             )
         )
-        advanced_latency_ms = round((perf_counter() - started) * 1000)
-        advanced_pages = page_ranking(reranked_docs)
+        rerank_ms = (perf_counter() - rerank_started) * 1000
+        advanced_latency_ms = round(hybrid_ms + rerank_ms, 2)
+        advanced_pages = page_ranking(reranked_docs[:k])
         advanced_rank = first_relevant_rank(
             advanced_pages,
             case["evidence_pages"],
@@ -192,11 +224,13 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
                     else "recall"
                 ),
                 "latency_ms": advanced_latency_ms,
+                "stage_latency_ms": {"hybrid": round(hybrid_ms, 2), "rerank": round(rerank_ms, 2)},
             }
         )
 
     report = {
-        "schema_version": 3,
+        "schema_version": 4,
+        "run_id": uuid.uuid4().hex,
         "metric_name": f"Evidence-page Hit Rate@{k}",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "metric_definition": (
@@ -210,12 +244,21 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
             or os.getenv("OPENAI_EMBEDDING_MODEL")
             or "default",
             "reranker_model": reranker_model_name(),
+            "index_fingerprint": chroma_index_fingerprint(),
+            "warmup": warmup,
+            "timing_definition": "Single sequential pass; model/index setup excluded. Hybrid + rerank reuses the same candidate pass. Not a load test.",
+            "dataset_sha256": {
+                path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in (DATASET_PATH, TEST_DATASET_PATH)
+            },
         },
         "dataset": json.loads(MANIFEST_PATH.read_text(encoding="utf-8")),
         "pipelines": [],
     }
     names = {
         "dense": "Dense baseline",
+        "bm25": "BM25 only",
+        "hybrid": "Hybrid without reranking",
         "hybrid_rerank": "Hybrid + rerank",
     }
     for pipeline_id, results in pipeline_cases.items():
@@ -237,10 +280,12 @@ def evaluate_retrieval(*, k: int = 4, save: bool = True) -> dict[str, Any]:
 
     if save:
         REPORT_DIR.mkdir(parents=True, exist_ok=True)
-        LATEST_REPORT.write_text(
-            json.dumps(report, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        serialized = json.dumps(report, ensure_ascii=False, indent=2)
+        # Keep each run; the latest pointer can change without erasing history.
+        (REPORT_DIR / f"run-{report['run_id']}.json").write_text(serialized, encoding="utf-8")
+        temporary = REPORT_DIR / f".{report['run_id']}.tmp"
+        temporary.write_text(serialized, encoding="utf-8")
+        temporary.replace(LATEST_REPORT)
     return report
 
 
