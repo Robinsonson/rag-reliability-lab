@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "dataset": "policy-lab-v2-synthetic-bilingual-1",
+  "synthetic": true,
+  "description": "Deterministic retrieval title and literal excerpt coverage. These checks are not semantic answer accuracy, a production capacity test, or a replacement for human review.",
+  "setup": "Manually upload both fixtures with the exact titles and scopes below, and wait until their ingestion jobs succeed. Use an evaluation account authorized for hr and finance, or an admin. The evaluator never imports or edits policies. Keep fixture versions unchanged during a comparable run.",
+  "fixtures": [
+    {"path": "fixtures/v2/synthetic_travel_policy.md", "title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "scope": "hr"},
+    {"path": "fixtures/v2/synthetic_field_service_policy.md", "title": "SYNTHETIC · 现场服务差旅政策 / Field Service Travel", "scope": "finance"}
+  ],
+  "cases": [
+    {"id": "employee-domestic-zh", "question": "合成样例中，普通员工在中国境内常规商务出差，每晚住宿最多报销多少元？", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["500", "普通员工"]}]},
+    {"id": "employee-overseas-zh", "question": "合成样例中，普通员工赴中国境外商务出差的每晚住宿报销上限是多少？", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["1500", "普通员工"]}]},
+    {"id": "employee-domestic-en", "question": "In the synthetic fixtures, what is the nightly domestic lodging limit for general employees on regular business travel in China?", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["500", "general employees"]}]},
+    {"id": "employee-overseas-en", "question": "In the synthetic Employee Travel policy, what is the overseas nightly lodging limit for general employees?", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["1500", "general employees"]}]},
+    {"id": "field-domestic-zh", "question": "合成样例中，客户现场服务工程师在中国境内执行现场服务任务，每晚住宿最多报销多少？", "expected": [{"title": "SYNTHETIC · 现场服务差旅政策 / Field Service Travel", "text_contains": ["550", "现场服务工程师"]}]},
+    {"id": "field-overseas-en", "question": "In the synthetic fixtures, what nightly lodging amount can field service engineers claim for overseas customer site assignments?", "expected": [{"title": "SYNTHETIC · 现场服务差旅政策 / Field Service Travel", "text_contains": ["1550", "field service engineers"]}]},
+    {"id": "employee-exception-zh", "question": "合成样例中，普通员工国内住宿超过标准时，需要提前得到谁的批准？", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["500", "部门主管", "事先"]}]},
+    {"id": "field-approval-en", "question": "In the synthetic fixtures, who must approve excess domestic lodging expenses for a field service engineer?", "expected": [{"title": "SYNTHETIC · 现场服务差旅政策 / Field Service Travel", "text_contains": ["550", "field service lead"]}]},
+    {"id": "ambiguous-change-candidate-coverage", "question": "合成样例里的国内差旅住宿限额有哪些？我准备把住宿标准提高到每晚800元，但还没说明适用哪类员工。", "expected": [{"title": "SYNTHETIC · 员工差旅政策 / Employee Travel", "text_contains": ["500"]}, {"title": "SYNTHETIC · 现场服务差旅政策 / Field Service Travel", "text_contains": ["550"]}], "note": "Only tests retrieval coverage of competing candidates. This read-only case does not start or evaluate a policy-update workflow."}
+  ]
+}

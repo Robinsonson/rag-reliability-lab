@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Policy Workspace · RAG Reliability Lab</title>
+  <link rel="stylesheet" href="/static/v2/styles.css">
+  <script src="/static/v2/app.js" defer></script>
+</head>
+<body>
+  <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden></div>
+  <main id="login-screen" class="login-screen">
+    <section class="login-intro">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">P</span><span>POLICY WORKSPACE</span></div>
+      <div class="login-copy"><p class="eyebrow">RAG RELIABILITY LAB / 02</p><h1 data-i18n="loginHeading">让制度知识，<br>真正进入工作。</h1><p data-i18n="loginDescription">有来源的回答，可审阅的修改，每一次发布都有记录。</p></div>
+      <p class="login-foot" data-i18n="loginFoot">知识查询 · 文档管理 · 制度更新</p>
+    </section>
+    <section class="login-panel">
+      <button class="language-toggle quiet" type="button" aria-label="Switch language">English</button>
+      <form id="login-form" class="login-form">
+        <span class="section-number">01 / ACCESS</span>
+        <h2 data-i18n="signIn">登录工作空间</h2>
+        <p class="muted" data-i18n="loginHelp">使用管理员为你创建的账号。</p>
+        <label for="username" data-i18n="username">用户名</label><input id="username" name="username" autocomplete="username" maxlength="100" required autofocus>
+        <label for="password" data-i18n="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+        <p id="login-error" class="inline-error" role="alert" hidden></p>
+        <button id="login-submit" class="primary wide" type="submit" data-i18n="signInButton">登录 →</button>
+        <p class="fineprint" data-i18n="loginNotice">你只能访问授权范围内的文档和操作记录。</p>
+      </form>
+    </section>
+  </main>
+
+  <div id="workspace" class="workspace" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="#ask" aria-label="Policy Workspace"><span class="brand-mark" aria-hidden="true">P</span><span>POLICY<br>WORKSPACE</span></a>
+      <p class="sidebar-caption">RAG RELIABILITY LAB</p>
+      <nav aria-label="Workspace">
+        <button class="nav-item active" data-view="ask" type="button"><span class="nav-index">01</span><span data-i18n="navAsk">知识问答</span><span class="nav-arrow">↗</span></button>
+        <button class="nav-item" data-view="documents" type="button"><span class="nav-index">02</span><span data-i18n="navDocuments">文档中心</span><span class="nav-arrow">↗</span></button>
+        <button class="nav-item manager-only" data-view="changes" type="button"><span class="nav-index">03</span><span data-i18n="navChanges">更新制度</span><span class="nav-arrow">↗</span></button>
+        <button class="nav-item" data-view="audit" type="button"><span class="nav-index">04</span><span data-i18n="navAudit">操作记录</span><span class="nav-arrow">↗</span></button>
+        <button class="nav-item admin-only" data-view="accounts" type="button"><span class="nav-index">05</span><span data-i18n="navAccounts">账号管理</span><span class="nav-arrow">↗</span></button>
+      </nav>
+      <div class="sidebar-bottom"><div class="identity"><span id="user-avatar" class="avatar">U</span><div><strong id="user-name"></strong><span id="user-role"></span></div></div><div class="sidebar-actions"><button class="language-toggle quiet" type="button">English</button><button id="logout" class="quiet" type="button" data-i18n="signOut">退出</button></div></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="page-header"><div><p id="page-kicker" class="eyebrow">WORKSPACE / KNOWLEDGE</p><h1 id="page-title">知识问答</h1></div><span id="scope-badge" class="scope-badge"></span></header>
+
+      <section id="view-ask" class="view">
+        <div class="hero-note"><span class="tiny-dot" aria-hidden="true"></span><span data-i18n="askScope">从你有权访问的已发布制度中查找答案。</span></div>
+        <form id="ask-form" class="question-card"><label for="question" class="large-label" data-i18n="askHeading">今天有什么需要确认？</label><textarea id="question" maxlength="4000" rows="3" data-i18n-placeholder="askPlaceholder" placeholder="例如：出差交通费可以报销多少？" required></textarea><div class="composer-footer"><span class="muted" data-i18n="askFoot">回答附带原文、版本与来源。</span><button id="ask-submit" class="primary" type="submit" data-i18n="askButton">查找答案 ↗</button></div></form>
+        <div id="answer-loading" class="activity" hidden><span class="spinner"></span><span data-i18n="answerLoading">正在检索授权文档并核对证据…</span></div>
+        <div id="answer-result" hidden></div>
+        <div id="ask-empty" class="empty-feature"><span class="empty-symbol" aria-hidden="true">↗</span><div><h2 data-i18n="askEmptyTitle">从问题开始，回到原文。</h2><p data-i18n="askEmptyText">你不需要知道答案在哪一份文档里。系统会查找相关条款；证据不足时，会明确告诉你。</p></div></div>
+      </section>
+
+      <section id="view-documents" class="view" hidden>
+        <div class="section-toolbar"><p class="section-description" data-i18n="documentDescription">统一查看已发布制度、历史版本与处理进度。</p><button id="refresh-documents" class="secondary" type="button" data-i18n="refresh">刷新</button></div>
+        <form id="upload-form" class="panel upload-panel manager-only">
+          <div class="panel-heading"><div><span class="section-number">INGEST / PREPARE / PUBLISH</span><h2 data-i18n="uploadHeading">添加文档</h2></div><span id="upload-limit" class="pill"></span></div>
+          <label for="upload-files" class="drop-zone" id="drop-zone"><span class="upload-icon" aria-hidden="true">↑</span><strong data-i18n="dropFiles">点击选择文件，或拖放到这里</strong><span data-i18n="uploadFormats">PDF、Word、PowerPoint、Excel、HTML、TXT、Markdown</span><input id="upload-files" type="file" multiple accept=".pdf,.docx,.pptx,.xlsx,.html,.txt,.md"></label>
+          <div id="selected-files" class="selected-files"></div>
+          <div class="form-grid"><div><label for="upload-title" data-i18n="titleOptional">文档标题（单文件可选）</label><input id="upload-title" maxlength="200" data-i18n-placeholder="titlePlaceholder" placeholder="默认使用文件名"></div><div><label for="upload-scope" data-i18n="scope">权限范围</label><select id="upload-scope"></select><input id="upload-scope-admin" maxlength="100" value="general" class="admin-only" aria-label="权限范围" hidden></div><div><label for="upload-replaces" data-i18n="uploadAs">导入方式</label><select id="upload-replaces"><option value="" data-i18n="newDocument">新增制度</option></select></div></div>
+          <div class="upload-bottom"><p class="fineprint" data-i18n="uploadNotice">文件依次上传，后台解析并准备索引。全部准备完成后才发布；原始附件始终保留。</p><button id="upload-submit" type="submit" class="primary" data-i18n="uploadButton">上传并准备 ↗</button></div>
+          <div id="upload-progress" hidden><div class="progress-label"><span id="upload-progress-name"></span><span id="upload-progress-percent"></span></div><progress id="upload-progress-bar" max="100" value="0"></progress></div>
+        </form>
+        <section id="jobs-panel" class="panel" hidden><div class="panel-heading"><h2 data-i18n="processing">处理任务</h2><span class="muted" data-i18n="jobsRefresh">运行中的任务会自动刷新</span></div><div id="jobs-list" class="stack"></div></section>
+        <section class="panel"><div class="panel-heading"><h2 data-i18n="policiesHeading">已发布与准备中的制度</h2><span id="policy-count" class="muted"></span></div><div id="policy-list" class="stack"></div><div class="pagination"><button id="policies-previous" class="secondary" type="button">← 上一页</button><span id="policies-page" class="muted"></span><button id="policies-next" class="secondary" type="button">下一页 →</button></div></section>
+      </section>
+
+      <section id="view-changes" class="view" hidden>
+        <div class="hero-note"><span class="tiny-dot" aria-hidden="true"></span><span data-i18n="changeScope">告诉系统你想改什么，无需先找到文档或段落。</span></div>
+        <form id="change-form" class="question-card"><label for="change-instruction" class="large-label" data-i18n="changeHeading">哪一条制度需要调整？</label><textarea id="change-instruction" rows="3" maxlength="4000" required data-i18n-placeholder="changePlaceholder" placeholder="例如：把国内出差的每日交通报销上限调整为 200 元，其他规则保持原样。"></textarea><div class="composer-footer"><span class="muted" data-i18n="changeFoot">系统先定位并生成修改稿，由你确认后发布。</span><button id="change-submit" type="submit" class="primary" data-i18n="locateChange">定位并起草 ↗</button></div></form>
+        <div id="change-loading" class="activity" hidden><span class="spinner"></span><span data-i18n="changeLoading">正在查找相关制度并准备修改稿…</span></div>
+        <div id="change-content"></div>
+        <div id="change-empty" class="empty-feature"><span class="empty-symbol" aria-hidden="true">±</span><div><h2 data-i18n="changeEmptyTitle">每次修改，都看得清楚。</h2><p data-i18n="changeEmptyText">定位条款 → 确认修改前后内容 → 后台准备 → 发布生效。准备失败时，当前制度继续有效。</p></div></div>
+      </section>
+
+      <section id="view-audit" class="view" hidden><div class="section-toolbar"><p class="section-description" data-i18n="auditDescription">你有权查看的制度变更与发布记录。</p><button id="refresh-audit" type="button" class="secondary" data-i18n="refresh">刷新</button></div><section class="panel"><div id="audit-list" class="audit-list"></div></section></section>
+
+      <section id="view-accounts" class="view" hidden><div class="section-toolbar"><p class="section-description" data-i18n="accountDescription">管理账号角色与可访问的制度范围。</p><button id="refresh-users" type="button" class="secondary" data-i18n="refresh">刷新</button></div><form id="create-user-form" class="panel"><div class="panel-heading"><h2 data-i18n="createAccount">创建账号</h2></div><div class="form-grid"><div><label for="new-username" data-i18n="username">用户名</label><input id="new-username" autocomplete="off" maxlength="100" required></div><div><label for="new-password" data-i18n="initialPassword">初始密码</label><input id="new-password" type="password" autocomplete="new-password" minlength="12" required></div><div><label for="new-role" data-i18n="role">角色</label><select id="new-role"><option value="reader" data-i18n="reader">读者</option><option value="manager" data-i18n="manager">制度负责人</option><option value="admin" data-i18n="admin">管理员</option></select></div><div><label for="new-scopes" data-i18n="scopesComma">权限范围（逗号分隔）</label><input id="new-scopes" value="general" maxlength="1000"></div></div><div class="form-footer"><button class="primary" type="submit" data-i18n="createAccount">创建账号</button></div></form><section class="panel"><div class="panel-heading"><h2 data-i18n="accounts">账号列表</h2></div><div id="users-list" class="stack"></div></section></section>
+      <footer class="page-footer"><span>POLICY WORKSPACE</span><span data-i18n="footer">每个答案有出处 · 每次修改有记录</span></footer>
+    </main>
+  </div>
+
+  <dialog id="revision-dialog" class="revision-dialog"><div class="dialog-heading"><div><span class="section-number">DOCUMENT / HISTORY</span><h2 id="revision-dialog-title"></h2></div><button id="close-revisions" type="button" class="icon-button" aria-label="关闭 / Close">×</button></div><div id="revision-list" class="stack"></div><div id="revision-content"></div></dialog>
+</body>
+</html>

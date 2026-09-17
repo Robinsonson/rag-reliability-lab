@@ -1,0 +1,8 @@
+{
+  "name": "rag-reliability-lab-ui-tests",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {"test:ui": "node --test web_v2/ui.test.cjs"},
+  "devDependencies": {"playwright": "1.62.1"},
+  "engines": {"node": ">=20"}
+}
