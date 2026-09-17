@@ -1,4 +1,46 @@
-# RAG Reliability Lab
+# RAG Reliability Lab — Policy Workbench v2
+
+The original implementation is preserved as [LangChain RAG v1.0](https://github.com/Robinsonson/rag-reliability-lab/releases/tag/langchain-rag-v1.0.0).
+
+The new workbench uses **LangGraph** for bounded bilingual policy Q&A and
+human-reviewed policy changes. A manager describes a change in ordinary language;
+the system locates the clause, asks business clarification questions when needed,
+shows a before/after review, and queues a new revision after explicit approval.
+
+- PostgreSQL + pgvector / lexical full-text search, reciprocal rank fusion and a multilingual reranker.
+- Persistent LangGraph checkpoints, scoped server-side permissions, immutable proposals and audited publication.
+- PDF/OCR, DOCX, PPTX, XLSX, HTML, Markdown and text ingestion through a separate worker.
+- Streaming multipart uploads and S3-compatible original storage; progress and bounded retry.
+- Index preparation before compare-and-swap publication, embedding reuse for unchanged content, and revision rollback.
+- Chinese/English interface and versioned canonical Markdown export, separate from original attachments.
+
+**Capacity target:** 10,000 policies, 100 MiB per file, configurable page/text budgets.
+These are design/configuration limits, **not verified load-test results**.
+The deployment is a single-company, scoped-account starting point; high availability,
+enterprise SSO, browser-resumable direct uploads and external document-system writeback
+are not included.
+
+See [Chinese implementation and deployment guide](docs/UPGRADE_V2.md) for setup,
+architecture decisions, current validation limits and primary research sources.
+The [local validation record](docs/VALIDATION_V2.md) separates completed tests from
+pending Docker, OCR, real-model and capacity validation.
+
+```powershell
+python -m policy_lab.manage setup-env
+# Edit private .env.v2 to configure the provider key; read the generated admin password there.
+docker compose --env-file .env.v2 build
+docker compose --env-file .env.v2 run --rm --no-deps api python -m policy_lab.manage download-models
+docker compose --env-file .env.v2 up -d
+```
+
+Open `http://127.0.0.1:8000`. API: `policy_lab.api:app`; worker: `python -m policy_lab.worker`.
+The original unauthenticated demo routes are not mounted by this server.
+The original benchmark below remains reproducible with `./run_lab.ps1 -Legacy`,
+using its separate `requirements-lock.txt` environment and frozen dataset.
+
+---
+
+## Preserved v1 benchmark documentation
 
 A local reliability workbench for policy-document RAG. The project focuses on
 a practical failure mode: an answer can sound plausible even when the correct

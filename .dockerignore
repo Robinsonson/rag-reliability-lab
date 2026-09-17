@@ -1,0 +1,14 @@
+.git
+.env
+.env.v2
+.venv*
+__pycache__
+*.pyc
+data
+.model_cache
+document_library
+chroma_db
+outputs
+work
+node_modules
+company_policy.pdf
